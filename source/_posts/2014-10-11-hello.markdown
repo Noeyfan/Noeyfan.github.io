@@ -1,0 +1,216 @@
+---
+layout: post
+title: "Hello.World"
+date: 2014-10-11 15:12:24 -0400
+comments: true
+categories: [casual]
+---
+之前电脑坏了，博客没有备份。重新写又懒得弄，现在摘取点重点
+
+* 去掉disqus内置**comments**字样,在'source/\_layouts'下
+```
+<!--<h1 class="title">Comments</h1>-->
+```
+* BVW Round0 的笔记
+
+被设置为trigger的collider是不会有物理碰撞效果的。
+
+Debug.Log(GameObject.name); 常用Debug
+
+Object 之间通过sendMessage来启用别人script里的方法
+
+Time.realtimeSince… 会keep recording， 而Time.timeSinceLeveLoad 只会更新本level的时间
+
+注意拖拽进来的位置要reset
+
+* 还有谷歌CEO的coroutine教程：
+
+```
+	* Tim Shen
+
+每开一个coroutine，就相当于多开了一个main
+那句yield waitforseconds你可以看成简单的“延时若干秒，然后继续执行”
+你操作系统宗平教的？
+
+	* Fan You
+
+IEnumerator Occur_rocks()
+	这个就是coroutine？
+	恩，老宗上课太甩了
+	他老喜欢拟人。。不讲术语，，
+
+	* Tim Shen
+
+	对，每调用一次这个函数返回一个新的coroutine
+	每调用一次就多开一个main的感觉
+	这个返回值被unity拿去用了，怎么用你暂时可以不用管
+
+	* Fan You
+
+	那我为啥还得写while才能不停调用
+
+	* Tim Shen
+
+	这个返回值你可以看成一个coroutine对象，我假象这个对象有close方法，可以用来关闭coroutine等等
+	因为你这个coroutine要不断的跑啊，不断生成rocks
+
+	* Fan You
+
+	也就是说返回值我不用管
+
+	* Tim Shen
+
+	注意coroutine里没有return
+	嗯，coroutine的返回值是c#帮你搞定的，不是你return的
+
+	* Fan You
+
+	也就是我要开多个IEnumerator才能实现各种包裹的分离
+
+	* Tim Shen
+
+	嗯
+	那样也比较清楚
+
+	* Fan You
+
+	yield 就直接当成刻个让他等待的方法用么
+
+	* Tim Shen
+	嗯
+	yield本身不是。那个wait for才是
+	yield也有别的用法
+
+	* Fan You
+
+	yield 是那个什么相当于代码块的占位符
+
+	* Tim Shen
+
+	啥？
+
+	* Fan You
+
+	还是哥哥语言yield 都不一样
+
+	* Tim Shen
+
+	各个语言yield是一个意思。你想知道是什么意思么？
+
+	* Fan You
+
+	ruby 有yield 就表示占空，然后别的地方代码块可以塞到yield那里执行
+	恩
+
+	* Tim Shen
+
+	coroutine和函数不一样。普通函数return之后函数执行就结束了
+	coroutine的yield后面和return一样，应该跟上一个“返回值”，这个返回值可以供调用者（unity）使用，但是coroutine没有结束，只是被挂在那，不会继续执行
+	直到unity下次再次调用该coroutine（仿佛调用一个函数一样），该coroutine会从上次yield的那个地方继续执行，仿佛没有中断过
+	所以coroutine外面（unity）用起来和函数一样，里面是一段代码连续不断在跑。
+	你说的ruby里其实一回事，yield出一个东西，给外面的block用
+	若yield nothing，只不过和return nothing类似罢了
+	所以coroutine刚刚说多线程其实不对，代码执行的顺序是：执行外面代码，某处调用coroutine，跳到coroutine代码，某处yield，跳回外面从调用处继续，某处外面再调用该coroutine，跳进coroutine代码的yield处继续，这样循环。
+	两片代码都是连续执行，但是来回跳
+
+	* Fan You
+
+	unity的main方法在哪，它每个script不就是创建了个class嘛
+
+	* Tim Shen
+
+	Main
+	被藏起来了
+
+	* Fan You
+
+	图形化界面的物体发生事件的时候，他回生成这个class的一个实例并执行那些方法？
+
+	* Tim Shen
+
+	嗯
+	基本是on开头的方法
+	都是unity规定好的
+	我觉得class的实例是在初始化的时候就生成了
+
+	* Fan You
+
+	回到coroutine，一步一步执行，到yield，return 了一个new WaitSecond
+	这WaitSecond是方法么
+
+	* Tim Shen
+
+	new啊
+
+	* Fan You
+
+	它执行了wait几秒这个动作
+	？
+
+	* Tim Shen
+
+	new后面自然是个类
+
+	* Fan You
+
+	类？就是Class？
+
+	* Tim Shen
+
+	所以yield出去一个WaitSecond类的实例
+	这个实例包含一个数字，表示要睡的秒数
+
+	* Fan You
+
+	然后就跳到WaitSecond执行？
+	完了再跳回来？
+
+	* Tim Shen
+
+	new的时候跑去执行wait second的构造函数
+
+	* Fan You
+
+	那和直接的方法调用区别在哪
+
+	* Tim Shen
+
+	这不是new嘛
+
+	* Fan You
+
+	soga
+
+	* Tim Shen
+
+	new出来一个对象并yield出去
+	unity看到一个wait second对象
+	然后会执行wait的动作
+
+	* Fan You
+
+	那不能直接写new 然后再写个调用嘛
+
+	* Tim Shen
+
+	关键是怎么让这个coroutine wait
+
+	* Fan You
+
+	soga
+
+	* Tim Shen
+
+	unity肯定跑着一个调度器
+	那个调度器负责谁在什么时候执行
+	unity也是要告诉那个调度器，让某某coroutine休息一段时间
+	如果coroutine自己有这个调度器，那也能自己休息自己
+	但是调度器还是不要暴露给程序员的好
+	我估计那个调度器是c#自带的，还不是unity的
+
+```
+
+End
+--------
+顺便贴个Markdown的[doc](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)链接.
+

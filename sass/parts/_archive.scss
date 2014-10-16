@@ -1,0 +1,35 @@
+.archives{
+	padding: 40px 0 1.5em;
+
+	h2 {
+		color: $color-gray01;
+		line-height: 20px;
+		margin-bottom: 30px;
+		@media screen and (max-width: 600px){
+			font-size: 25px;
+		}
+	}
+	article{
+		&:first-of-type{
+			h3 {
+				margin: 0;
+			}
+		}
+		margin-left: 0px;
+		padding: 0;
+		@media screen and (max-width: 600px) {
+			margin-left: 0;
+			&:first-of-type{
+				h3 {
+					margin: 1.2em 0 0 0;
+				}
+			}
+		}
+		.meta {
+			color: $color-gray01;
+			font-size: 0.9em;
+			line-height: 20px;
+			margin-bottom: 20px;
+		}
+	}
+}
