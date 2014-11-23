@@ -1,0 +1,85 @@
+---
+layout: post
+title: "Function Pointer"
+date: 2014-11-22 16:19:47 -0500
+comments: true
+categories: [C, tech]
+---
+今天才知道各各系统的man是不一样的,mac下查man还是上网查把。
+
+1.基础应用(1)
+```C
+typedef float (*pf) (float, float);
+//pf 是函数指针类型,注意此处*的位置，表示取值
+
+float foo(flaot a, float b) {
+	return 0;
+}
+
+int main() {
+	pf a = &foo;
+	(*a)(1,1);
+}
+```
+
+2.基础应用(2)
+```C
+typedef int (*fp)(int, int);
+
+int add (int a, int b) {
+	  return a+b;
+}
+
+int imp(int a, int b, fp f) {
+	  return (*f)(a,b);
+}
+
+int main () {
+	  printf("result is %i", imp(1,1,add));
+		  return 0;
+}
+```
+3.两种定义形式
+* C: 返回类型 (*函数指针名称)(参数类型,参数类型,参数类型，…);
+* C++: 返回类型 (类名称::*函数成员名称)(参数类型，参数类型，参数类型，…);
+
+4.函数指针作为返回值
+```C
+int (*foo(char op))(int a, int b) {
+	if(op == '+') {
+		return add;
+	}else {
+		return 0;
+	}
+}
+
+void (*signal)(int signo,void (*func)(int))(int);
+//unix 系统函数
+//函数名称signal
+//接受两个参数- int 和 一个函数指针
+//返回函数指针类型为: void(*)(int)
+
+int main () {
+	int (*returnpf)(int a, int b); // (*returnpf) 这个括号不能少
+	returnpf = foo('+');
+	printf("result is %i\n", (*returnpf)(1,3));
+	//or
+	printf("result is %i\n", foo('+')(1,1));
+}
+```
+
+5.函数指针数组
+```C
+float (*pFunctionArray[10])(float, float);
+```
+
+6.用typedef 简化函数
+```C
+typedef void (*pf)(int);
+//void (*signal)(int signo,void (*func)(int))(int);
+//= pf signal(int signo, pf func);
+
+typedef void pf(int);
+//void (*signal)(int signo,void (*func)(int))(int);
+// = pf* signal(int signo, pf* func);
+```
