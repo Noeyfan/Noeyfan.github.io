@@ -7,10 +7,27 @@ categories: [C, tech]
 ---
 今天才知道各各系统的man是不一样的,mac下查man还是上网查把。
 
+0.前言
+```
+函数:
+{返回值类型} {函数名}({参数列表})这个格式你应该很熟悉了，就是函数
+
+函数指针:
+{返回值类型} （*{变量名}）({参数列表})
+
+变量声明:
+{类型} {和表达式很像的东西}
+```
+
 1.基础应用(1)
 ```C
 typedef float (*pf) (float, float);
 //pf 是函数指针类型,注意此处*的位置，表示取值
+//typedef 将pf变成一个类型
+//如果没有typedef,需要对每个同样函数指针的定义做相同的事情
+//float (*pf)(float, float);
+//float (*a)(float, float);
+//此处变量名也可以省去，方便YY :)
 
 float foo(flaot a, float b) {
 	return 0;
@@ -40,6 +57,7 @@ int main () {
 }
 ```
 3.两种定义形式
+
 * C: 返回类型 (*函数指针名称)(参数类型,参数类型,参数类型，…);
 * C++: 返回类型 (类名称::*函数成员名称)(参数类型，参数类型，参数类型，…);
 
@@ -58,6 +76,7 @@ void (*signal)(int signo,void (*func)(int))(int);
 //函数名称signal
 //接受两个参数- int 和 一个函数指针
 //返回函数指针类型为: void(*)(int)
+//照着读signal 调用两次以后返回void
 
 int main () {
 	int (*returnpf)(int a, int b); // (*returnpf) 这个括号不能少
@@ -82,4 +101,16 @@ typedef void (*pf)(int);
 typedef void pf(int);
 //void (*signal)(int signo,void (*func)(int))(int);
 // = pf* signal(int signo, pf* func);
+```
+
+7.附言，米米的教导 [米米知乎解答](http://www.zhihu.com/question/20635559/answer/19669437)
+```C
+int (*signal[4])(int)(char)[6];
+//变量申明
+//该表达式返回int
+//所以(*signal[4])(int)(char)返回一个int指针(可以用作[6])
+//(*signal[4])(int)是一个函数指针，接受参数char，返回int指针
+//signal[4]是一个函数指针，接受int，返回另一个函数指针，后者的函数类型如上所述，“接受char，返回int指针”
+//现在signal是啥呢，肯定是个数组。什么数组呢？上一条那玩意的数组
+//结论:signal是一个函数指针数组，函数指针的函数类型为：接受int，返回另一个函数指针，后者的函数类型为“接受char，返回int指针”
 ```
