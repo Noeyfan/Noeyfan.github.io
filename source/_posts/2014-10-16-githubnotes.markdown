@@ -84,3 +84,5 @@ git merge <branch name>
 
 git branch -d <branch name>
 ```
+###More
+[Add project to github using command line](https://help.github.com/articles/adding-an-existing-project-to-github-using-the-command-line/)
