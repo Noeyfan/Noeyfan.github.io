@@ -12,7 +12,7 @@ categories: [C, tech]
 函数:
 {返回值类型} {函数名}({参数列表})这个格式你应该很熟悉了，就是函数
 
-函数指针:
+函数指针:(函数指针也是一种变量，可以直接以函数名赋值) 参见[C实现virtual function](https://github.com/Noeyfan/CodingPractice/blob/master/virtual/virtualFunctionC.c)
 {返回值类型} （*{变量名}）({参数列表})
 
 变量声明:
