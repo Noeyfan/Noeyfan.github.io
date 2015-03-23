@@ -1,0 +1,30 @@
+---
+layout: post
+title: "面试总结"
+date: 2015-03-01 15:41:09 -0500
+comments: true
+categories: 
+---
+###Epic
+说来这也算是这辈子第一次tech interview, 总结一下把。总体面试还是分为两块,技术性问题和非技术性问题。
+
+###Non-Tech
+非技术性问题问了目前为止解决的最难的bug是什么, 你最喜欢的游戏是什么，给你一个机会improve，你会怎么improve。 
+
+###Tech
+问了Array, List, Tree, Hashtable 各自的优劣,我萌萌的完全不知道该怎么答。回头整理了下发在[这里](https://docs.google.com/spreadsheets/d/1RdcEWxH6dcAfvAEpaDvLp4lW7AwC2C0RNDvXfqlq5yI/edit?usp=sharing),基本从两个角度作答:1.复杂度 2.overhead
+
+###C++
+
+* 什么是Virtual Destructor: 不用作[owned base class pointer](https://github.com/Noeyfan/CodingPractice/blob/master/virtual/vf_destructor.cc)的时候不用.
+
+	```C
+	A* p = new B();
+	delete p;
+	```
+* virtual function 是怎么样实现的(一般实现virtual function的时候会把所有的函数指针放到一个[表(vtable)里](http://en.wikipedia.org/wiki/Virtual_method_table), 一个类有10个virtual function你初始化一个子类对象这个子类对象一般多大？假设基类size为A，子类size为B假设基类所有成员size和为A，子类自己所有成员size和为B创建一个子类对象，占多大空间？ 答案:A+B+sizeof(pointer\_type), 另外alignment可能让他更大)
+
+* 几何问题: 做一个2D game, 不用ray cast如何知道A是否看的见B, 很简单, Va\*(Pb-Pa) > 0 说明能看得见, 反之看不见。
+
+###More
+还是要学好C/C++,[deep-C](http://www.slideshare.net/olvemaudal/deep-c)
