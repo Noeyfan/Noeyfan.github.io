@@ -18,11 +18,19 @@ categories:
 
 * 什么是Virtual Destructor: 不用作[owned base class pointer](https://github.com/Noeyfan/CodingPractice/blob/master/virtual/vf_destructor.cc)的时候不用.
 
-	```C
-	A* p = new B();
-	delete p;
-	```
-* virtual function 是怎么样实现的(一般实现virtual function的时候会把所有的函数指针放到一个[表(vtable)里](http://en.wikipedia.org/wiki/Virtual_method_table), 一个类有10个virtual function你初始化一个子类对象这个子类对象一般多大？假设基类size为A，子类size为B假设基类所有成员size和为A，子类自己所有成员size和为B创建一个子类对象，占多大空间？ 答案:A+B+sizeof(pointer\_type), 另外alignment可能让他更大)
+```C
+A* p = new B();
+delete p;
+```
+* virtual function 是怎么样实现的(一般实现virtual function的时候会把所有的函数指针放到一个[表(vtable)里](http://en.wikipedia.org/wiki/Virtual_method_table), 
+
+```				  
+一个类有10个virtual function你初始化一个子类对象这个子类对象一般多大？
+假设基类size为A，子类size为B假设基类所有成员size和为A，
+子类自己所有成员size和为B创建一个子类对象，占多大空间？ 
+
+答案:A+B+sizeof(pointer_type), 另外alignment可能让他更大)
+```
 
 * 几何问题: 做一个2D game, 不用ray cast如何知道A是否看的见B, 很简单, Va\*(Pb-Pa) > 0 说明能看得见, 反之看不见。
 
