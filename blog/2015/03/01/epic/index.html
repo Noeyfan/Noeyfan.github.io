@@ -1,0 +1,166 @@
+
+<!DOCTYPE HTML>
+<html lang="en-GB">
+<head>
+	<meta charset="utf-8">
+	<title>面试总结  | NOEY</title>
+
+	<meta name="author" content="Fan You">
+
+<meta name="description" content="Epic 说来这也算是这辈子第一次tech interview, 总结一下把。总体面试还是分为两块,技术性问题和非技术性问题。 Non-Tech 非技术性问题问了目前为止解决的最难的bug是什么, 你最喜欢的游戏是什么，给你一个机会improve，你会怎么improve。 Tech 问了Array &hellip;"> <meta name="keywords" content="">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="NOEY" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+
+</head>
+
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">NOEY</a></h1>
+<span class="tagline"></span>
+
+
+</header>
+
+	<div id="content" class="inner"><article class="post">
+	<header>
+		<h2 class="title">面试总结</h2>
+		<div class="meta date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-03-01T15:41:09-05:00" pubdate data-updated="true"></time></div>
+	</header>
+	<div class="entry-content"><h3>Epic</h3>
+
+<p>说来这也算是这辈子第一次tech interview, 总结一下把。总体面试还是分为两块,技术性问题和非技术性问题。</p>
+
+<h3>Non-Tech</h3>
+
+<p>非技术性问题问了目前为止解决的最难的bug是什么, 你最喜欢的游戏是什么，给你一个机会improve，你会怎么improve。</p>
+
+<h3>Tech</h3>
+
+<p>问了Array, List, Tree, Hashtable 各自的优劣,我萌萌的完全不知道该怎么答。回头整理了下发在<a href="https://docs.google.com/spreadsheets/d/1RdcEWxH6dcAfvAEpaDvLp4lW7AwC2C0RNDvXfqlq5yI/edit?usp=sharing">这里</a>,基本从两个角度作答:1.复杂度 2.overhead</p>
+
+<h3>C++</h3>
+
+<ul>
+<li>什么是Virtual Destructor: 不用作<a href="https://github.com/Noeyfan/CodingPractice/blob/master/virtual/vf_destructor.cc">owned base class pointer</a>的时候不用.</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="n">A</span><span class="o">*</span> <span class="n">p</span> <span class="o">=</span> <span class="n">new</span> <span class="n">B</span><span class="p">();</span>
+</span><span class='line'><span class="n">delete</span> <span class="n">p</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>virtual function 是怎么样实现的(一般实现virtual function的时候会把所有的函数指针放到一个<a href="http://en.wikipedia.org/wiki/Virtual_method_table">表(vtable)里</a>,</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="err">一个类有</span><span class="mi">10</span><span class="err">个</span><span class="n">virtual</span> <span class="n">function</span><span class="err">你初始化一个子类对象这个子类对象一般多大？</span>
+</span><span class='line'><span class="err">假设基类</span><span class="n">size</span><span class="err">为</span><span class="n">A</span><span class="err">，子类</span><span class="n">size</span><span class="err">为</span><span class="n">B</span><span class="err">假设基类所有成员</span><span class="n">size</span><span class="err">和为</span><span class="n">A</span><span class="err">，</span>
+</span><span class='line'><span class="err">子类自己所有成员</span><span class="n">size</span><span class="err">和为</span><span class="n">B</span><span class="err">创建一个子类对象，占多大空间？</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">答案</span><span class="o">:</span><span class="n">A</span><span class="o">+</span><span class="n">B</span><span class="o">+</span><span class="k">sizeof</span><span class="p">(</span><span class="n">pointer_type</span><span class="p">),</span> <span class="err">另外</span><span class="n">alignment</span><span class="err">可能让他更大</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>几何问题: 做一个2D game, 不用ray cast如何知道A是否看的见B, 很简单, Va*(Pb-Pa) > 0 说明能看得见, 反之看不见。</li>
+</ul>
+
+
+<h3>More</h3>
+
+<p>还是要学好C/C++,<a href="http://www.slideshare.net/olvemaudal/deep-c">deep-C</a></p>
+</div>
+
+</article>
+
+	
+	<div class="share">
+	</div>
+
+
+
+
+<section id="comment">
+    <!--h2 class="title">Comments</h2-->
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+</div>
+	<footer id="footer" class="inner"><footer>
+<hr>
+<div class="about">
+<a href="https://twitter.com/Yyoubuer"><img src="https://s.gravatar.com/avatar/34fe2d98d60e35a82cf6d649e1f93a91?s=640"></img></a>
+<h4>Fan You</h4>
+	<p><a href="https://twitter.com/Yyoubuer">@fanyou</a>. A programmer studying in Carnegie Mellon University. Love music, game. See My <a href="http://fyoubuertec.wordpress.com/">Portfolio</a> and <a href="https://fyoubuertec.files.wordpress.com/2014/12/fanyou_se1.pdf">Resumé</a>. Contact me via <a href="mailto:youfan.noey@gamil.com">e-mail</a>.</p>
+</div>
+
+<div class="copy">
+&copy; 2015
+<a href="http://fyou.me/">fyou.me</a>
+</div>
+</footer>
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/hyphenator.js"></script>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'buertec';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://fyou.me/blog/2015/03/01/epic/';
+        var disqus_url = 'http://fyou.me/blog/2015/03/01/epic/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+</body>
+<script>
+  $(document).ready(function() {
+  // Make images center
+  $('p:has(img)').css('text-align', 'center');
+  });
+</script>
+</html>

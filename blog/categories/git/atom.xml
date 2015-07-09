@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: git | NOEY]]></title>
+  <link href="http://fyou.me/blog/categories/git/atom.xml" rel="self"/>
+  <link href="http://fyou.me/"/>
+  <updated>2015-07-09T18:02:54-04:00</updated>
+  <id>http://fyou.me/</id>
+  <author>
+    <name><![CDATA[Fan You]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Github Notes]]></title>
+    <link href="http://fyou.me/blog/2014/10/16/githubnotes/"/>
+    <updated>2014-10-16T17:00:06-04:00</updated>
+    <id>http://fyou.me/blog/2014/10/16/githubnotes</id>
+    <content type="html"><![CDATA[<h3>Normal Usage</h3>
+
+<pre><code>git reset --hard 加上要回滚到的那个hash tag
+
+git init 
+
+git status
+
+git add filename
+
+git add '\*.name'
+
+git log 
+
+git remote add origin https://github.com/try-git/try\_git.git
+
+git push -u origin master  记得加上remote name(origin) 和branch name(master)
+
+git pull  origin master 
+
+git diff HEAD
+
+git add octofamily/octodog.txt
+
+git diff --staged
+
+git reset octofamily/octodog.txt 但是文件还会存在
+
+git checkout -- octocat.txt 回到octocat的last commit时候
+
+git checkout -- octocat.txt 新建clean up branch , 且同时switch to it
+
+git branch 
+
+git rm '\*.txt'
+
+git commit -m ""
+
+git checkout master
+
+git merge clean\_up
+
+git branch -d clean\_up
+
+git push
+</code></pre>
+
+<h3>Bvw Learn</h3>
+
+<pre><code>git clean -f  清除所有untrack的文件
+
+git add -u 添加所有改动文件
+
+git checkout -- &lt;filename&gt; 解除单个文件的改动
+
+git reset 取消add变回untracked file
+</code></pre>
+
+<h3>Stash</h3>
+
+<pre><code>git status 查看那些改动
+
+git stash 将所有改动放进stash
+
+git stash list 看stash里的东西
+
+git checkout -b &lt;branch name&gt; 创建新branch
+
+git stash apply 将所有改动放进去
+
+//在branch 里修改以后回到master进行merge
+
+git checkout master
+
+git merge &lt;branch name&gt;
+
+git branch -d &lt;branch name&gt;
+</code></pre>
+
+<h3>More</h3>
+
+<p><a href="https://help.github.com/articles/adding-an-existing-project-to-github-using-the-command-line/">Add project to github using command line</a></p>
+]]></content>
+  </entry>
+  
+</feed>

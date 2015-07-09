@@ -1,0 +1,319 @@
+
+<!DOCTYPE HTML>
+<html lang="en-GB">
+<head>
+	<meta charset="utf-8">
+	<title>Function Pointer  | NOEY</title>
+
+	<meta name="author" content="Fan You">
+
+<meta name="description" content="今天才知道各各系统的man是不一样的,mac下查man还是上网查把。 0.前言 C实现virtual function 1
+2
+3
+4
+5
+6
+7
+8
+函数:
+{返回值类型} {函数名}({参数列表})这个格式你应该很熟悉了，就是函数 函数指针:函数指针也是一种变量，可以直接以函数名赋值
+{ &hellip;"> <meta name="keywords" content="">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="NOEY" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+
+</head>
+
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">NOEY</a></h1>
+<span class="tagline"></span>
+
+
+</header>
+
+	<div id="content" class="inner"><article class="post">
+	<header>
+		<h2 class="title">Function Pointer</h2>
+		<div class="meta date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-22T16:19:47-05:00" pubdate data-updated="true"></time></div>
+	</header>
+	<div class="entry-content"><p>今天才知道各各系统的man是不一样的,mac下查man还是上网查把。</p>
+
+<p>0.前言 <a href="https://github.com/Noeyfan/CodingPractice/blob/master/virtual/virtualFunctionC.c">C实现virtual function</a></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>函数:
+</span><span class='line'>{返回值类型} {函数名}({参数列表})这个格式你应该很熟悉了，就是函数
+</span><span class='line'>
+</span><span class='line'>函数指针:函数指针也是一种变量，可以直接以函数名赋值
+</span><span class='line'>{返回值类型} （*{变量名}）({参数列表})
+</span><span class='line'>
+</span><span class='line'>变量声明:
+</span><span class='line'>{类型} {和表达式很像的东西}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>1.基础应用(1)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="k">typedef</span> <span class="nf">float</span> <span class="p">(</span><span class="o">*</span><span class="n">pf</span><span class="p">)</span> <span class="p">(</span><span class="kt">float</span><span class="p">,</span> <span class="kt">float</span><span class="p">);</span>
+</span><span class='line'><span class="c1">//pf 是函数指针类型,注意此处*的位置，表示取值</span>
+</span><span class='line'><span class="c1">//typedef 将pf变成一个类型</span>
+</span><span class='line'><span class="c1">//如果没有typedef,需要对每个同样函数指针的定义做相同的事情</span>
+</span><span class='line'><span class="c1">//float (*pf)(float, float);</span>
+</span><span class='line'><span class="c1">//float (*a)(float, float);</span>
+</span><span class='line'><span class="c1">//此处变量名也可以省去，方便YY :)</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">float</span> <span class="nf">foo</span><span class="p">(</span><span class="n">flaot</span> <span class="n">a</span><span class="p">,</span> <span class="kt">float</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">pf</span> <span class="n">a</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">foo</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">(</span><span class="o">*</span><span class="n">a</span><span class="p">)(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>2.基础应用(2)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="k">typedef</span> <span class="nf">int</span> <span class="p">(</span><span class="o">*</span><span class="n">fp</span><span class="p">)(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">add</span> <span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">imp</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">,</span> <span class="n">fp</span> <span class="n">f</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="p">(</span><span class="o">*</span><span class="n">f</span><span class="p">)(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;result is %i&quot;</span><span class="p">,</span> <span class="n">imp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">add</span><span class="p">));</span>
+</span><span class='line'>        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>3.两种定义形式</p>
+
+<ul>
+<li>C: 返回类型 (*函数指针名称)(参数类型,参数类型,参数类型，…);</li>
+<li>C++: 返回类型 (类名称::*函数成员名称)(参数类型，参数类型，参数类型，…);</li>
+</ul>
+
+
+<p>4.函数指针作为返回值</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">foo</span><span class="p">(</span><span class="kt">char</span> <span class="n">op</span><span class="p">))(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">op</span> <span class="o">==</span> <span class="sc">&#39;+&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="n">add</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span><span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">signal</span><span class="p">)(</span><span class="kt">int</span> <span class="n">signo</span><span class="p">,</span><span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">func</span><span class="p">)(</span><span class="kt">int</span><span class="p">))(</span><span class="kt">int</span><span class="p">);</span>
+</span><span class='line'><span class="c1">//unix 系统函数</span>
+</span><span class='line'><span class="c1">//函数名称signal</span>
+</span><span class='line'><span class="c1">//接受两个参数- int 和 一个函数指针</span>
+</span><span class='line'><span class="c1">//返回函数指针类型为: void(*)(int)</span>
+</span><span class='line'><span class="c1">//照着读signal 调用两次以后返回void</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">returnpf</span><span class="p">)(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">);</span> <span class="c1">// (*returnpf) 这个括号不能少</span>
+</span><span class='line'>  <span class="n">returnpf</span> <span class="o">=</span> <span class="n">foo</span><span class="p">(</span><span class="sc">&#39;+&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;result is %i</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">returnpf</span><span class="p">)(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">));</span>
+</span><span class='line'>  <span class="c1">//or</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;result is %i</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">foo</span><span class="p">(</span><span class="sc">&#39;+&#39;</span><span class="p">)(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>5.函数指针数组</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="kt">float</span> <span class="p">(</span><span class="o">*</span><span class="n">pFunctionArray</span><span class="p">[</span><span class="mi">10</span><span class="p">])(</span><span class="kt">float</span><span class="p">,</span> <span class="kt">float</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>6.用typedef 简化函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="k">typedef</span> <span class="nf">void</span> <span class="p">(</span><span class="o">*</span><span class="n">pf</span><span class="p">)(</span><span class="kt">int</span><span class="p">);</span>
+</span><span class='line'><span class="c1">//void (*signal)(int signo,void (*func)(int))(int);</span>
+</span><span class='line'><span class="c1">//= pf signal(int signo, pf func);</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">typedef</span> <span class="kt">void</span> <span class="nf">pf</span><span class="p">(</span><span class="kt">int</span><span class="p">);</span>
+</span><span class='line'><span class="c1">//void (*signal)(int signo,void (*func)(int))(int);</span>
+</span><span class='line'><span class="c1">// = pf* signal(int signo, pf* func);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>7.附言，米米的教导 <a href="http://www.zhihu.com/question/20635559/answer/19669437">米米知乎解答</a></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">signal</span><span class="p">[</span><span class="mi">4</span><span class="p">])(</span><span class="kt">int</span><span class="p">)(</span><span class="kt">char</span><span class="p">)[</span><span class="mi">6</span><span class="p">];</span>
+</span><span class='line'><span class="c1">//变量申明</span>
+</span><span class='line'><span class="c1">//该表达式返回int</span>
+</span><span class='line'><span class="c1">//所以(*signal[4])(int)(char)返回一个int指针(可以用作[6])</span>
+</span><span class='line'><span class="c1">//(*signal[4])(int)是一个函数指针，接受参数char，返回int指针</span>
+</span><span class='line'><span class="c1">//signal[4]是一个函数指针，接受int，返回另一个函数指针，后者的函数类型如上所述，“接受char，返回int指针”</span>
+</span><span class='line'><span class="c1">//现在signal是啥呢，肯定是个数组。什么数组呢？上一条那玩意的数组</span>
+</span><span class='line'><span class="c1">//结论:signal是一个函数指针数组，函数指针的函数类型为：接受int，返回另一个函数指针，后者的函数类型为“接受char，返回int指针”</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+</article>
+
+	
+	<div class="share">
+	</div>
+
+
+
+
+<section id="comment">
+    <!--h2 class="title">Comments</h2-->
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+</div>
+	<footer id="footer" class="inner"><footer>
+<hr>
+<div class="about">
+<a href="https://twitter.com/Yyoubuer"><img src="https://s.gravatar.com/avatar/34fe2d98d60e35a82cf6d649e1f93a91?s=640"></img></a>
+<h4>Fan You</h4>
+	<p><a href="https://twitter.com/Yyoubuer">@fanyou</a>. A programmer studying in Carnegie Mellon University. Love music, game. See My <a href="http://fyoubuertec.wordpress.com/">Portfolio</a> and <a href="https://fyoubuertec.files.wordpress.com/2014/12/fanyou_se1.pdf">Resumé</a>. Contact me via <a href="mailto:youfan.noey@gamil.com">e-mail</a>.</p>
+</div>
+
+<div class="copy">
+&copy; 2015
+<a href="http://fyou.me/">fyou.me</a>
+</div>
+</footer>
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/hyphenator.js"></script>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'buertec';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://fyou.me/blog/2014/11/22/p-thread/';
+        var disqus_url = 'http://fyou.me/blog/2014/11/22/p-thread/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+</body>
+<script>
+  $(document).ready(function() {
+  // Make images center
+  $('p:has(img)').css('text-align', 'center');
+  });
+</script>
+</html>

@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: stdlibc++ | NOEY]]></title>
+  <link href="http://fyou.me/blog/categories/stdlibc-plus-plus/atom.xml" rel="self"/>
+  <link href="http://fyou.me/"/>
+  <updated>2015-07-09T18:02:54-04:00</updated>
+  <id>http://fyou.me/</id>
+  <author>
+    <name><![CDATA[Fan You]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Extend shared ptr to support array[0]]]></title>
+    <link href="http://fyou.me/blog/2015/03/29/stdlibc-plus-plus/"/>
+    <updated>2015-03-29T00:02:53-04:00</updated>
+    <id>http://fyou.me/blog/2015/03/29/stdlibc-plus-plus</id>
+    <content type="html"><![CDATA[<p>写了两周stdlibc++.纪录点对c++的理解吧.</p>
+
+<h3><a href="http://en.cppreference.com/w/cpp/language/default_constructor">default constructor</a></h3>
+
+<ol>
+<li>constructor 是不能被定义在class外的</li>
+<li>当constructor被定义为default, compiler 会生成一个implicity declared constructor, calls the default constructors of the bases and of the non-static members of this class.</li>
+</ol>
+
+
+<h3><a href="http://en.cppreference.com/w/cpp/language/copy_constructor">copy constructors</a></h3>
+
+<ol>
+<li>当user没有定义copy ctor的时候, compiler 会生成一个implicity declared的版本.</li>
+<li>这个implicity的版本在一定情况下会被delete,详情见cppreference.</li>
+</ol>
+
+
+<h3><a href="http://en.cppreference.com/w/cpp/language/sfinae">SFINAE</a></h3>
+
+<p>Substitution failure is not an error - 编译器不会立刻炸,会搜索next</p>
+
+<h3>类型擦除(把原来的类型去掉，换成统一类型,换言之cast)</h3>
+
+<pre><code>char a[10];
+void* ap = (void*)a;
+int b;
+void* bp = (void*)&amp;b;
+</code></pre>
+
+<p>这里就都cast成了void指针。</p>
+
+<p>再来看个Any的例子:</p>
+
+<pre><code>class Any {
+public:
+  Any() : ptr(nullptr) {}
+
+  Any(const Any&amp; other) {
+      ptr = other.ptr-&gt;Copy();
+  }
+
+  Any&amp; operator=(const Any&amp; other) {
+      this-&gt;~Any();
+      ptr = other.ptr-&gt;Copy();
+      return *this;
+  }
+
+  ~Any() {
+      if (ptr != nullptr) {
+      delete ptr;
+      }
+  }
+
+  template&lt;typename T&gt;
+    void Assign(const T&amp; data) {
+    this-&gt;~Any();
+    ptr = new Wrapper&lt;T&gt;(data);
+    }
+
+  template&lt;typename T&gt;
+    T* Get() {
+    auto wrapper = dynamic_cast&lt;Wrapper&lt;T&gt;*&gt;(ptr);
+    if (wrapper != nullptr) {
+        return &amp;wrapper-&gt;data;
+    }
+    return nullptr;
+    }
+
+private:
+  struct AnyData {
+      virtual ~AnyData() { }
+
+      virtual AnyData* Copy() = 0;
+  };
+
+  template&lt;typename T&gt;
+    struct Wrapper : public AnyData {
+    Wrapper(const T&amp; data) : data(data) {}
+
+    AnyData* Copy() override {
+        return new Wrapper&lt;T&gt;(data);
+    }
+
+    T data;
+    };
+
+  AnyData* ptr;
+};
+
+#include &lt;iostream&gt;
+
+int main() {
+    Any a;
+    a.Assign&lt;int&gt;(3);
+    std::cout &lt;&lt; (a.Get&lt;char&gt;() == nullptr) &lt;&lt; "\n";
+    std::cout &lt;&lt; (*a.Get&lt;int&gt;() == 3) &lt;&lt; "\n";
+
+    Any b;
+    b = a;
+    std::cout &lt;&lt; (*b.Get&lt;int&gt;() == 3) &lt;&lt; "\n";
+
+    return 0;
+}
+</code></pre>
+
+<h3>Placement new</h3>
+
+<p>通常的new = malloc + ctor, 所以palcement new 就是在分配好的内存地址上再调用一次ctor</p>
+
+<p>通常的delete = dctor + free</p>
+
+<h3>Vtable 的 C 实现</h3>
+
+<pre><code>#include &lt;stdio.h&gt;
+
+typedef void (*GenericFuncPtr)(void);
+//use general ptr array store vf pointer
+
+struct Cat {
+    GenericFuncPtr* vtable_ptr;
+};
+
+void cat_speak(struct Cat* this) {
+    printf("miao");
+}
+
+void cat_die(struct Cat* this) {
+    printf("ewww");
+}
+
+GenericFuncPtr cat_vtable[] = {
+    // do in the compile time
+    (GenericFuncPtr)cat_speak,
+    (GenericFuncPtr)cat_die,
+};
+
+void construct_cat(struct Cat* c) {
+    c-&gt;vtable_ptr = cat_vtable;
+}
+
+struct Lion {
+    struct Cat base;
+};
+
+void lion_speak(struct Lion* this) {
+    printf("ow");
+}
+
+void lion_die(struct Lion* this) {
+    printf("ahhh");
+}
+
+GenericFuncPtr lion_vtable[] = {
+    (GenericFuncPtr)lion_speak,
+    (GenericFuncPtr)lion_die,
+};
+
+void construct_lion(struct Lion* l) {
+    construct_cat(&amp;l-&gt;base);
+    l-&gt;base.vtable_ptr = lion_vtable;
+}
+
+int main () {
+    struct Lion l;
+    struct Cat* c;
+    construct_lion(&amp;l);
+    c = &amp;l.base;
+    // c-&gt;speak
+    ((void (*)(struct Lion*))c-&gt;vtable_ptr[0])((struct Lion*)c);
+    // c-&gt;die
+    ((void (*)(struct Lion*))c-&gt;vtable_ptr[1])((struct Lion*)c);
+    return 0;
+}
+</code></pre>
+
+<h3><a href="http://en.cppreference.com/w/cpp/language/partial_specialization">Partial specialization</a></h3>
+
+<p>Partial specialization 只是针对模版参数,而且function不支持partial specialization.</p>
+
+<pre><code>template &lt;typename _Tp&gt; // primary
+class A {
+};
+
+template &lt;typename _Tp&gt;
+class A&lt;_Tp[]&gt; {
+};
+
+template &lt;typename _Tp&gt;
+class A&lt;_Tp*&gt; {
+};
+
+//template &lt;typename _Tp&gt; //error
+//class A&lt;_Tp&gt; {
+//};
+</code></pre>
+
+<h3><a href="http://isocpp.org/blog/2012/11/universal-references-in-c11-scott-meyers">Universal ref</a></h3>
+
+<pre><code>template&lt;typename T&gt;
+struct A {
+    void Foo(T&amp;&amp; /*rvalue ref*/);
+};
+struct A {
+    template&lt;typename T&gt;
+      void Foo(T&amp;&amp; /*forwarding ref, or `universal ref`*/);
+};
+//上面的例子虽然T是模板参数，但不是等着被推出来的。
+</code></pre>
+
+<h3><a href="http://en.cppreference.com/w/cpp/utility/variadic">Variadic functions</a></h3>
+
+<p>用法与用处。</p>
+
+<pre><code>#include &lt;iostream&gt;
+template &lt;typename T&gt;
+class A {
+public:
+  A() { std::cout &lt;&lt; "without size" &lt;&lt; "\n"; }
+  A(size_t size) { std::cout &lt;&lt; "with size" &lt;&lt; "\n"; }
+  A(size_t size, size_t idx) { std::cout &lt;&lt; "with size, idx" &lt;&lt; "\n"; }
+  ~A() { std::cout &lt;&lt; "dtor" &lt;&lt; "\n"; }
+};
+
+template &lt;typename _Tp, typename... Args&gt;
+class B : A&lt;_Tp&gt; {
+public:
+  //B() { std::cout &lt;&lt; "B ctor" &lt;&lt; "\n"; } B&lt;int&gt;b1 wont work;
+  B(Args&amp;&amp;... _args) : A&lt;_Tp&gt;(_args...) { }
+private:
+  //A&lt;_Tp&gt; _a;
+};
+
+class Tmp {
+public:
+  Tmp() { std::cout &lt;&lt; "Tmp ctor" &lt;&lt; "\n"; }
+};
+
+int main () {
+    //B&lt;int&gt; b1;
+    B&lt;int,size_t&gt; b2(1);
+    //B&lt;int,size_t&gt; b(1,2); //error
+    B&lt;int,size_t,size_t&gt; b3(1,2);
+
+    Tmp tmp;
+    Tmp tmp1(); // function !!!!!!!!!!!!
+}
+</code></pre>
+
+<h3><a href="http://stackoverflow.com/questions/6627651/enable-if-method-specialization">function specialization</a></h3>
+]]></content>
+  </entry>
+  
+</feed>

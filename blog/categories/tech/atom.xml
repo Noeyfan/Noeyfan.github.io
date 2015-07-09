@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: tech | NOEY]]></title>
+  <link href="http://fyou.me/blog/categories/tech/atom.xml" rel="self"/>
+  <link href="http://fyou.me/"/>
+  <updated>2015-07-09T18:02:54-04:00</updated>
+  <id>http://fyou.me/</id>
+  <author>
+    <name><![CDATA[Fan You]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[关于堆分配和栈分配思考以及指针和引用]]></title>
+    <link href="http://fyou.me/blog/2014/12/31/heapstack/"/>
+    <updated>2014-12-31T01:33:26-05:00</updated>
+    <id>http://fyou.me/blog/2014/12/31/heapstack</id>
+    <content type="html"><![CDATA[<h4>栈分配</h4>
+
+<p>传统栈分配的例子:
+<code>C
+int GiveVal(int a) {
+    int x = a;
+    return x;
+}
+</code>
+这是合法的栈分配意思是在执行完整个方法后,将里边的数据copy一份,return给外边以后,再将自身的数据a,x释放掉。</p>
+
+<h4>堆分配的产生</h4>
+
+<p>由于栈分配在小规模操作的时候还好,但是上升到大规模的运算时候,拷贝的速度会变的非常的慢。
+所以就干脆不释放运算过程中的数据，直接将地址return出来。
+传统做法是这样的:
+<code>C
+FWidget* CreateWidget(int x, int y, int z)
+{
+    FWidget* NewWidgetPointer = new FWidget(x,y,z);
+    return NewWidgetPointer;
+}
+</code></p>
+
+<h4>引用</h4>
+
+<p>int b = 3;
+int&amp; a = b;
+这个等价于
+int b = 3;
+int<em> ap = &b;
+a = 4; 等价于 </em>ap = 4;
+&amp;a 等价于 ap
+唯一不等价的是你没法改ap指向谁
+ap只能指向b，不能换人</p>
+
+<h4>例题</h4>
+
+<p>下图方法有什么问题:
+<code>C
+FWidget&amp; CreateWidget(int x, int y, int z)
+{
+    FWidget NewWidget(x,y,z); // 栈分配
+    return NewWidget;
+}
+</code>
+等价写法:
+<code>C
+FWidget* CreateWidget(int x, int y, int z)
+{
+    FWidget  NewWidget(x,y,z);
+    return &amp;NewWidget;
+}
+</code>
+问题:
+return 出去以后原来的东西就被释放了。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[对于int64, int32的一点理解]]></title>
+    <link href="http://fyou.me/blog/2014/12/30/int/"/>
+    <updated>2014-12-30T14:34:44-05:00</updated>
+    <id>http://fyou.me/blog/2014/12/30/int</id>
+    <content type="html"><![CDATA[<h3>基本概念</h3>
+
+<p>32/64 表示的是数字长度</p>
+
+<h4>int32_t 4byte * 8 = 32</h4>
+
+<p>表示范围是: -(2<sup>31</sup>+1) ~ 2<sup>31</sup>-1</p>
+
+<h4>uint32_t</h4>
+
+<p>表示范围是: 0 ~ 2<sup>32</sup>-1</p>
+
+<h4>int64_t 8byte * 8 = 62</h4>
+
+<p>表示范围是: -(2<sup>63</sup>+1) ~ 2<sup>63</sup>-1</p>
+
+<h4>uint64_t</h4>
+
+<p>表示范围是: 0 ~ 2<sup>64</sup>-1</p>
+
+<h3>进制转换</h3>
+
+<p>hex(10) = dec(16)</p>
+
+<h3>编译区别</h3>
+
+<p>cc -m32 a.cc
+cc -m64 a.cc</p>
+
+<p>指针大小是不相同的64位下是8byte, 32位下是4byte.</p>
+
+<p>原因:就是说,现代操作系统比较贴心,每个程序运行的时候都给你一个大大的独占的内存条,对于32位系统来说，给的内存条大小为2<sup>32</sup>字节,也就是4GB
+对于64位系统来说,给的内存条大小是2<sup>64</sup>字节,也就是数不清的字节
+当然不可能真给你这么大。策略是你用多少就给你多少
+但是你仿佛有一个超大内存可以独霸
+所有的指针都是存的这个超大内存的地址
+自然,32位系统的指针是4字节，因为一共有2<sup>32</sup>个格子嘛,4字节就是32位数,每个数对应一个格子,也就是存了32个01.
+64位的话只是更多而已,依然是一一对应</p>
+
+<h3>数组与指针后移</h3>
+
+<p>假设T a[] = {};
+已知a地址为A
+a+1 的地址是&mdash;&ndash;> A + sizeof(T); // 此处是T而不是T*</p>
+
+<h3>补码反码表示</h3>
+
+<p>C中 ^表示异或计算 (不同为1,相同为0)
+      ~表示按位取反 (计算机中求负数 = 取反+1)
+        如果出现要求返回是uint却返回了负数的情况,计算机会吧他取反+1当成uint来计算。 -8 = ~8 + 1 = 2<sup>32</sup> -1 -8 +1</p>
+
+<h3>关于所谓的符号位</h3>
+
+<pre><code>    举例说明:
+    比如一个一字节的数:
+    0 ~ 0111 1111是正数,表示0~127
+    1000 0000 ~ 1111 1111是负数,表示-128 ~ -1
+    每个正数取反加一就是相应的负数
+    -128比较诡异,因为没有对应的正数
+
+    也就是说最高位是1表示正,是0表示负这个没错,但是具体求的时候,始终是取反+1
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[TCP Server-Client 实现]]></title>
+    <link href="http://fyou.me/blog/2014/11/24/tcp-prectise/"/>
+    <updated>2014-11-24T22:22:50-05:00</updated>
+    <id>http://fyou.me/blog/2014/11/24/tcp-prectise</id>
+    <content type="html"><![CDATA[<p>出于练习目的，决定自己实现一遍client-server的基础模型.
+<a href="https://github.com/Noeyfan/crack_code_interview/tree/master/socket">源码</a></p>
+
+<h4>Server端</h4>
+
+<p>1.申明并取得启用服务地址的一系列参数(这里通过命令行输入).</p>
+
+<pre><code class="C">struct sockaddr_in server;
+struct sockaddr_in client;
+int port, connectfd, sin_size;
+sin_size = sizeof(struct sockaddr_in);
+
+port = htons(atoi(argv[2])); //端叙转换,atoi只用于转换数字
+//转化时跳过前面的空格字符，直到遇上数字或正负符号才开始做转换，而再遇到非数字或字符串结束时('/0')才结束转换，并将结果返回。
+
+server.sin_family = AF_INET;
+server.sin_port = port;
+server.sin_addr.s_addr = htonl(INADDR_ANY); //localhost
+</code></pre>
+
+<p>2.创建socket, 并设置为resuable(并发服务器)</p>
+
+<pre><code class="C">int socketfd = socket(AF_INET, SOCK_STREAM, 0); //返回int
+int opt = SO_REUSEADDR;
+setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, &amp;opt, sizeof(opt));
+</code></pre>
+
+<p>3.bind 和listen</p>
+
+<pre><code class="C">if(bind(socketfd, (struct sockaddr *) &amp;server, sizeof(struct sockaddr)) == -1) {
+    perror("Bind error");
+    exit(1);
+}
+
+if(listen(socketfd, 5) == -1) {
+    perror("listen() error\n");
+    exit(1);
+}
+</code></pre>
+
+<p>4.accept卡住程序，等待客户连入，一但连入，开thread处理client</p>
+
+<pre><code class="C">if((connectfd = accept(socketfd, (struct sockaddr *)&amp;client, (socklen_t *)&amp;sin_size)) == -1){ //connectfd is only for process request
+    perror ("accept() error \n");
+    exit(1);
+
+    struct ARG* arg = (struct ARG*)malloc(sizeof(struct ARG));
+    arg-&gt;connfd = connectfd;
+    connarr[cnt++] = connectfd;
+    printf("connect fd after is : %d", arg-&gt;connfd);
+    arg-&gt;client = client;
+    if(pthread_create(&amp;thread, NULL, start_routine, (void*)arg)) { //if get strange thing, most likely is pass parameter
+        perror("pthread create error");
+        exit(1);
+    }
+}
+</code></pre>
+
+<h4>Client端</h4>
+
+<p>1.载入server参数</p>
+
+<pre><code class="C">struct sockaddr_in server_addr;
+//两种方法获取server_addr
+//1. 可以读取localhost
+struct hostent *server;
+server = gethostbyname(argv[1]);
+bcopy(server-&gt;h_addr, &amp;server_addr.sin_addr,server-&gt;h_length);
+
+//2. 直接对server_addr放入ipaddr
+socketaddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // 127.0.0.1可以是任何string
+</code></pre>
+
+<p>2.connect to the Server</p>
+
+<pre><code class="C">if(connect(sockfd, (const struct sockaddr *)&amp;server_addr,sizeof(server_addr)) &lt; 0) {
+    printf("fail to connect");
+}
+</code></pre>
+
+<p>3.开thread去处理服务器发来的信息
+<code>C
+if(pthread_create(&amp;thread1, NULL, &amp;start_receive, (void*)arg)){
+    perror("listen create error");
+    exit(1);
+}
+</code></p>
+
+<p>4.在另外的while loop里进行发送
+<code>C
+while(1) { // must
+    sendRequest(sockfd, argv[3]);
+    //在sendRequest里用fegets卡住程序.
+}
+</code></p>
+
+<h4>I/O复用提高效率</h4>
+
+<p>基本概念(从非阻塞轮询到select/poll到epoll)</p>
+
+<p>1.非阻塞轮询:不停检测所有io,有数据则读取
+<code>
+while(true) {
+    for (i in stream[]){
+        if (i has data){
+            read all;
+        }
+    }
+}
+</code></p>
+
+<p>2.为了避免cpu空转:引入select代理
+同时观察许多流的I/O事件，在空闲的时候，会把当前线程阻塞掉，当有一个或多个流有I/O事件时，就从阻塞态中醒来，于是我们的程序就会轮询一遍所有的流
+<code>
+while(true) {
+    select(stream[]);
+    for (i in stream[]){
+        if (i has data){
+            read all;
+        }
+    }
+}
+</code>
+于是，如果没有I/O事件产生，我们的程序就会阻塞在select处。但是依然有个问题，我们从select那里仅仅知道了，有I/O事件发生了，但却并不知道是那几个流（可能有一个，多个，甚至全部），我们只能无差别轮询所有流，找出能读出数据，或者写入数据的流，对他们进行操作。使用select，我们有O(n)的无差别轮询复杂度，同时处理的流越多，每一次无差别轮询时间就越长。</p>
+
+<p>3.epoll (event poll)
+epoll会把哪个流发生了怎样的I/O事件通知我们。此时我们对这些流的操作都是有意义的,复杂度降低到了O(k)，k为产生I/O事件的流的个数.
+<code>
+while(true) {
+    active_stream[] = epoll_wait(epollfd)
+        for (i in active_stream[]) {
+            read or write till unavailable
+        }
+}
+</code></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Function Pointer]]></title>
+    <link href="http://fyou.me/blog/2014/11/22/p-thread/"/>
+    <updated>2014-11-22T16:19:47-05:00</updated>
+    <id>http://fyou.me/blog/2014/11/22/p-thread</id>
+    <content type="html"><![CDATA[<p>今天才知道各各系统的man是不一样的,mac下查man还是上网查把。</p>
+
+<p>0.前言 <a href="https://github.com/Noeyfan/CodingPractice/blob/master/virtual/virtualFunctionC.c">C实现virtual function</a></p>
+
+<pre><code>函数:
+{返回值类型} {函数名}({参数列表})这个格式你应该很熟悉了，就是函数
+
+函数指针:函数指针也是一种变量，可以直接以函数名赋值
+{返回值类型} （*{变量名}）({参数列表})
+
+变量声明:
+{类型} {和表达式很像的东西}
+</code></pre>
+
+<p>1.基础应用(1)
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="k">typedef</span> <span class="nf">float</span> <span class="p">(</span><span class="o">&lt;</span><span class="n">em</span><span class="o">&gt;</span><span class="n">pf</span><span class="p">)</span> <span class="p">(</span><span class="kt">float</span><span class="p">,</span> <span class="kt">float</span><span class="p">);</span>
+</span><span class='line'><span class="c1">//pf 是函数指针类型,注意此处&lt;/em&gt;的位置，表示取值</span>
+</span><span class='line'><span class="c1">//typedef 将pf变成一个类型</span>
+</span><span class='line'><span class="c1">//如果没有typedef,需要对每个同样函数指针的定义做相同的事情</span>
+</span><span class='line'><span class="c1">//float (&lt;em&gt;pf)(float, float);</span>
+</span><span class='line'><span class="c1">//float (&lt;/em&gt;a)(float, float);</span>
+</span><span class='line'><span class="c1">//此处变量名也可以省去，方便YY :)&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kt">float</span> <span class="n">foo</span><span class="p">(</span><span class="n">flaot</span> <span class="n">a</span><span class="p">,</span> <span class="kt">float</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kt">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">pf</span> <span class="n">a</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">foo</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">(</span><span class="o">*</span><span class="n">a</span><span class="p">)(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>2.基础应用(2)
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="k">typedef</span> <span class="nf">int</span> <span class="p">(</span><span class="o">*</span><span class="n">fp</span><span class="p">)(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kt">int</span> <span class="n">add</span> <span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kt">int</span> <span class="n">imp</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">,</span> <span class="n">fp</span> <span class="n">f</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="p">(</span><span class="o">*</span><span class="n">f</span><span class="p">)(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kt">int</span> <span class="n">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">result</span> <span class="n">is</span> <span class="o">%</span><span class="n">i</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="n">imp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">add</span><span class="p">));</span>
+</span><span class='line'>          <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+3.两种定义形式</p>
+
+<ul>
+<li>C: 返回类型 (*函数指针名称)(参数类型,参数类型,参数类型，…);</li>
+<li>C++: 返回类型 (类名称::*函数成员名称)(参数类型，参数类型，参数类型，…);</li>
+</ul>
+
+
+<p>4.函数指针作为返回值
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">foo</span><span class="p">(</span><span class="kt">char</span> <span class="n">op</span><span class="p">))(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">op</span> <span class="o">==</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="o">+&amp;</span><span class="n">rsquo</span><span class="p">;)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">add</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span><span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kt">void</span> <span class="p">(</span><span class="o">&lt;</span><span class="n">em</span><span class="o">&gt;</span><span class="n">signal</span><span class="p">)(</span><span class="kt">int</span> <span class="n">signo</span><span class="p">,</span><span class="kt">void</span> <span class="p">(</span><span class="o">&lt;/</span><span class="n">em</span><span class="o">&gt;</span><span class="n">func</span><span class="p">)(</span><span class="kt">int</span><span class="p">))(</span><span class="kt">int</span><span class="p">);</span>
+</span><span class='line'><span class="c1">//unix 系统函数</span>
+</span><span class='line'><span class="c1">//函数名称signal</span>
+</span><span class='line'><span class="c1">//接受两个参数- int 和 一个函数指针</span>
+</span><span class='line'><span class="c1">//返回函数指针类型为: void(*)(int)</span>
+</span><span class='line'><span class="c1">//照着读signal 调用两次以后返回void&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="kt">int</span> <span class="n">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="p">(</span><span class="o">&lt;</span><span class="n">em</span><span class="o">&gt;</span><span class="n">returnpf</span><span class="p">)(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">);</span> <span class="c1">// (&lt;/em&gt;returnpf) 这个括号不能少</span>
+</span><span class='line'>    <span class="n">returnpf</span> <span class="o">=</span> <span class="n">foo</span><span class="p">(</span><span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="o">+&amp;</span><span class="n">rsquo</span><span class="p">;);</span>
+</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">result</span> <span class="n">is</span> <span class="o">%</span><span class="n">i</span><span class="err">\</span><span class="n">n</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="p">(</span><span class="o">*</span><span class="n">returnpf</span><span class="p">)(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">));</span>
+</span><span class='line'>    <span class="c1">//or</span>
+</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">result</span> <span class="n">is</span> <span class="o">%</span><span class="n">i</span><span class="err">\</span><span class="n">n</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="n">foo</span><span class="p">(</span><span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="o">+&amp;</span><span class="n">rsquo</span><span class="p">;)(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>5.函数指针数组
+<code>C
+float (*pFunctionArray[10])(float, float);
+</code></p>
+
+<p>6.用typedef 简化函数
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="k">typedef</span> <span class="nf">void</span> <span class="p">(</span><span class="o">&lt;</span><span class="n">em</span><span class="o">&gt;</span><span class="n">pf</span><span class="p">)(</span><span class="kt">int</span><span class="p">);</span>
+</span><span class='line'><span class="c1">//void (&lt;/em&gt;signal)(int signo,void (*func)(int))(int);</span>
+</span><span class='line'><span class="c1">//= pf signal(int signo, pf func);&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">typedef</span> <span class="kt">void</span> <span class="n">pf</span><span class="p">(</span><span class="kt">int</span><span class="p">);</span>
+</span><span class='line'><span class="c1">//void (&lt;em&gt;signal)(int signo,void (&lt;/em&gt;func)(int))(int);</span>
+</span><span class='line'><span class="c1">// = pf&lt;em&gt; signal(int signo, pf&lt;/em&gt; func);</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>7.附言，米米的教导 <a href="http://www.zhihu.com/question/20635559/answer/19669437">米米知乎解答</a>
+<code>C
+int (*signal[4])(int)(char)[6];
+//变量申明
+//该表达式返回int
+//所以(*signal[4])(int)(char)返回一个int指针(可以用作[6])
+//(*signal[4])(int)是一个函数指针，接受参数char，返回int指针
+//signal[4]是一个函数指针，接受int，返回另一个函数指针，后者的函数类型如上所述，“接受char，返回int指针”
+//现在signal是啥呢，肯定是个数组。什么数组呢？上一条那玩意的数组
+//结论:signal是一个函数指针数组，函数指针的函数类型为：接受int，返回另一个函数指针，后者的函数类型为“接受char，返回int指针”
+</code></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Github Notes]]></title>
+    <link href="http://fyou.me/blog/2014/10/16/githubnotes/"/>
+    <updated>2014-10-16T17:00:06-04:00</updated>
+    <id>http://fyou.me/blog/2014/10/16/githubnotes</id>
+    <content type="html"><![CDATA[<h3>Normal Usage</h3>
+
+<pre><code>git reset --hard 加上要回滚到的那个hash tag
+
+git init 
+
+git status
+
+git add filename
+
+git add '\*.name'
+
+git log 
+
+git remote add origin https://github.com/try-git/try\_git.git
+
+git push -u origin master  记得加上remote name(origin) 和branch name(master)
+
+git pull  origin master 
+
+git diff HEAD
+
+git add octofamily/octodog.txt
+
+git diff --staged
+
+git reset octofamily/octodog.txt 但是文件还会存在
+
+git checkout -- octocat.txt 回到octocat的last commit时候
+
+git checkout -- octocat.txt 新建clean up branch , 且同时switch to it
+
+git branch 
+
+git rm '\*.txt'
+
+git commit -m ""
+
+git checkout master
+
+git merge clean\_up
+
+git branch -d clean\_up
+
+git push
+</code></pre>
+
+<h3>Bvw Learn</h3>
+
+<pre><code>git clean -f  清除所有untrack的文件
+
+git add -u 添加所有改动文件
+
+git checkout -- &lt;filename&gt; 解除单个文件的改动
+
+git reset 取消add变回untracked file
+</code></pre>
+
+<h3>Stash</h3>
+
+<pre><code>git status 查看那些改动
+
+git stash 将所有改动放进stash
+
+git stash list 看stash里的东西
+
+git checkout -b &lt;branch name&gt; 创建新branch
+
+git stash apply 将所有改动放进去
+
+//在branch 里修改以后回到master进行merge
+
+git checkout master
+
+git merge &lt;branch name&gt;
+
+git branch -d &lt;branch name&gt;
+</code></pre>
+
+<h3>More</h3>
+
+<p><a href="https://help.github.com/articles/adding-an-existing-project-to-github-using-the-command-line/">Add project to github using command line</a></p>
+]]></content>
+  </entry>
+  
+</feed>

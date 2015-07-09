@@ -1,0 +1,557 @@
+
+<!DOCTYPE HTML>
+<html lang="en-GB">
+<head>
+	<meta charset="utf-8">
+	<title>Extend shared ptr to support array[0]  | NOEY</title>
+
+	<meta name="author" content="Fan You">
+
+<meta name="description" content="写了两周stdlibc++.纪录点对c++的理解吧. default constructor constructor 是不能被定义在class外的
+当constructor被定义为default, compiler 会生成一个implicity declared constructor, &hellip;"> <meta name="keywords" content="">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="NOEY" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+
+</head>
+
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">NOEY</a></h1>
+<span class="tagline"></span>
+
+
+</header>
+
+	<div id="content" class="inner"><article class="post">
+	<header>
+		<h2 class="title">Extend Shared ptr to Support Array[0]</h2>
+		<div class="meta date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-03-29T00:02:53-04:00" pubdate data-updated="true"></time></div>
+	</header>
+	<div class="entry-content"><p>写了两周stdlibc++.纪录点对c++的理解吧.</p>
+
+<h3><a href="http://en.cppreference.com/w/cpp/language/default_constructor">default constructor</a></h3>
+
+<ol>
+<li>constructor 是不能被定义在class外的</li>
+<li>当constructor被定义为default, compiler 会生成一个implicity declared constructor, calls the default constructors of the bases and of the non-static members of this class.</li>
+</ol>
+
+
+<h3><a href="http://en.cppreference.com/w/cpp/language/copy_constructor">copy constructors</a></h3>
+
+<ol>
+<li>当user没有定义copy ctor的时候, compiler 会生成一个implicity declared的版本.</li>
+<li>这个implicity的版本在一定情况下会被delete,详情见cppreference.</li>
+</ol>
+
+
+<h3><a href="http://en.cppreference.com/w/cpp/language/sfinae">SFINAE</a></h3>
+
+<p>Substitution failure is not an error - 编译器不会立刻炸,会搜索next</p>
+
+<h3>类型擦除(把原来的类型去掉，换成统一类型,换言之cast)</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>char a[10];
+</span><span class='line'>void* ap = (void*)a;
+</span><span class='line'>int b;
+</span><span class='line'>void* bp = (void*)&b;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里就都cast成了void指针。</p>
+
+<p>再来看个Any的例子:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class Any {
+</span><span class='line'>public:
+</span><span class='line'>  Any() : ptr(nullptr) {}
+</span><span class='line'>
+</span><span class='line'>  Any(const Any& other) {
+</span><span class='line'>      ptr = other.ptr-&gt;Copy();
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  Any& operator=(const Any& other) {
+</span><span class='line'>      this-&gt;~Any();
+</span><span class='line'>      ptr = other.ptr-&gt;Copy();
+</span><span class='line'>      return *this;
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  ~Any() {
+</span><span class='line'>      if (ptr != nullptr) {
+</span><span class='line'>    delete ptr;
+</span><span class='line'>      }
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  template&lt;typename T&gt;
+</span><span class='line'>    void Assign(const T& data) {
+</span><span class='line'>  this-&gt;~Any();
+</span><span class='line'>  ptr = new Wrapper&lt;T&gt;(data);
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>  template&lt;typename T&gt;
+</span><span class='line'>    T* Get() {
+</span><span class='line'>  auto wrapper = dynamic_cast&lt;Wrapper&lt;T&gt;*&gt;(ptr);
+</span><span class='line'>  if (wrapper != nullptr) {
+</span><span class='line'>      return &wrapper-&gt;data;
+</span><span class='line'>  }
+</span><span class='line'>  return nullptr;
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>private:
+</span><span class='line'>  struct AnyData {
+</span><span class='line'>      virtual ~AnyData() { }
+</span><span class='line'>
+</span><span class='line'>      virtual AnyData* Copy() = 0;
+</span><span class='line'>  };
+</span><span class='line'>
+</span><span class='line'>  template&lt;typename T&gt;
+</span><span class='line'>    struct Wrapper : public AnyData {
+</span><span class='line'>  Wrapper(const T& data) : data(data) {}
+</span><span class='line'>
+</span><span class='line'>  AnyData* Copy() override {
+</span><span class='line'>      return new Wrapper&lt;T&gt;(data);
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  T data;
+</span><span class='line'>    };
+</span><span class='line'>
+</span><span class='line'>  AnyData* ptr;
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>#include &lt;iostream&gt;
+</span><span class='line'>
+</span><span class='line'>int main() {
+</span><span class='line'>    Any a;
+</span><span class='line'>    a.Assign&lt;int&gt;(3);
+</span><span class='line'>    std::cout &lt;&lt; (a.Get&lt;char&gt;() == nullptr) &lt;&lt; "\n";
+</span><span class='line'>    std::cout &lt;&lt; (*a.Get&lt;int&gt;() == 3) &lt;&lt; "\n";
+</span><span class='line'>
+</span><span class='line'>    Any b;
+</span><span class='line'>    b = a;
+</span><span class='line'>    std::cout &lt;&lt; (*b.Get&lt;int&gt;() == 3) &lt;&lt; "\n";
+</span><span class='line'>
+</span><span class='line'>    return 0;
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Placement new</h3>
+
+<p>通常的new = malloc + ctor, 所以palcement new 就是在分配好的内存地址上再调用一次ctor</p>
+
+<p>通常的delete = dctor + free</p>
+
+<h3>Vtable 的 C 实现</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#include &lt;stdio.h&gt;
+</span><span class='line'>
+</span><span class='line'>typedef void (*GenericFuncPtr)(void);
+</span><span class='line'>//use general ptr array store vf pointer
+</span><span class='line'>
+</span><span class='line'>struct Cat {
+</span><span class='line'>    GenericFuncPtr* vtable_ptr;
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>void cat_speak(struct Cat* this) {
+</span><span class='line'>    printf("miao");
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>void cat_die(struct Cat* this) {
+</span><span class='line'>    printf("ewww");
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>GenericFuncPtr cat_vtable[] = {
+</span><span class='line'>    // do in the compile time
+</span><span class='line'>    (GenericFuncPtr)cat_speak,
+</span><span class='line'>    (GenericFuncPtr)cat_die,
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>void construct_cat(struct Cat* c) {
+</span><span class='line'>    c-&gt;vtable_ptr = cat_vtable;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>struct Lion {
+</span><span class='line'>    struct Cat base;
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>void lion_speak(struct Lion* this) {
+</span><span class='line'>    printf("ow");
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>void lion_die(struct Lion* this) {
+</span><span class='line'>    printf("ahhh");
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>GenericFuncPtr lion_vtable[] = {
+</span><span class='line'>    (GenericFuncPtr)lion_speak,
+</span><span class='line'>    (GenericFuncPtr)lion_die,
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>void construct_lion(struct Lion* l) {
+</span><span class='line'>    construct_cat(&l-&gt;base);
+</span><span class='line'>    l-&gt;base.vtable_ptr = lion_vtable;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>int main () {
+</span><span class='line'>    struct Lion l;
+</span><span class='line'>    struct Cat* c;
+</span><span class='line'>    construct_lion(&l);
+</span><span class='line'>    c = &l.base;
+</span><span class='line'>    // c-&gt;speak
+</span><span class='line'>    ((void (*)(struct Lion*))c-&gt;vtable_ptr[0])((struct Lion*)c);
+</span><span class='line'>    // c-&gt;die
+</span><span class='line'>    ((void (*)(struct Lion*))c-&gt;vtable_ptr[1])((struct Lion*)c);
+</span><span class='line'>    return 0;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3><a href="http://en.cppreference.com/w/cpp/language/partial_specialization">Partial specialization</a></h3>
+
+<p>Partial specialization 只是针对模版参数,而且function不支持partial specialization.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>template &lt;typename _Tp&gt; // primary
+</span><span class='line'>class A {
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>template &lt;typename _Tp&gt;
+</span><span class='line'>class A&lt;_Tp[]&gt; {
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>template &lt;typename _Tp&gt;
+</span><span class='line'>class A&lt;_Tp*&gt; {
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>//template &lt;typename _Tp&gt; //error
+</span><span class='line'>//class A&lt;_Tp&gt; {
+</span><span class='line'>//};</span></code></pre></td></tr></table></div></figure>
+
+
+<h3><a href="http://isocpp.org/blog/2012/11/universal-references-in-c11-scott-meyers">Universal ref</a></h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>template&lt;typename T&gt;
+</span><span class='line'>struct A {
+</span><span class='line'>    void Foo(T&& /*rvalue ref*/);
+</span><span class='line'>};
+</span><span class='line'>struct A {
+</span><span class='line'>    template&lt;typename T&gt;
+</span><span class='line'>      void Foo(T&& /*forwarding ref, or `universal ref`*/);
+</span><span class='line'>};
+</span><span class='line'>//上面的例子虽然T是模板参数，但不是等着被推出来的。</span></code></pre></td></tr></table></div></figure>
+
+
+<h3><a href="http://en.cppreference.com/w/cpp/utility/variadic">Variadic functions</a></h3>
+
+<p>用法与用处。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#include &lt;iostream&gt;
+</span><span class='line'>template &lt;typename T&gt;
+</span><span class='line'>class A {
+</span><span class='line'>public:
+</span><span class='line'>  A() { std::cout &lt;&lt; "without size" &lt;&lt; "\n"; }
+</span><span class='line'>  A(size_t size) { std::cout &lt;&lt; "with size" &lt;&lt; "\n"; }
+</span><span class='line'>  A(size_t size, size_t idx) { std::cout &lt;&lt; "with size, idx" &lt;&lt; "\n"; }
+</span><span class='line'>  ~A() { std::cout &lt;&lt; "dtor" &lt;&lt; "\n"; }
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>template &lt;typename _Tp, typename... Args&gt;
+</span><span class='line'>class B : A&lt;_Tp&gt; {
+</span><span class='line'>public:
+</span><span class='line'>  //B() { std::cout &lt;&lt; "B ctor" &lt;&lt; "\n"; } B&lt;int&gt;b1 wont work;
+</span><span class='line'>  B(Args&&... _args) : A&lt;_Tp&gt;(_args...) { }
+</span><span class='line'>private:
+</span><span class='line'>  //A&lt;_Tp&gt; _a;
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>class Tmp {
+</span><span class='line'>public:
+</span><span class='line'>  Tmp() { std::cout &lt;&lt; "Tmp ctor" &lt;&lt; "\n"; }
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>int main () {
+</span><span class='line'>    //B&lt;int&gt; b1;
+</span><span class='line'>    B&lt;int,size_t&gt; b2(1);
+</span><span class='line'>    //B&lt;int,size_t&gt; b(1,2); //error
+</span><span class='line'>    B&lt;int,size_t,size_t&gt; b3(1,2);
+</span><span class='line'>
+</span><span class='line'>    Tmp tmp;
+</span><span class='line'>    Tmp tmp1(); // function !!!!!!!!!!!!
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3><a href="http://stackoverflow.com/questions/6627651/enable-if-method-specialization">function specialization</a></h3>
+</div>
+
+</article>
+
+	
+	<div class="share">
+	</div>
+
+
+
+
+<section id="comment">
+    <!--h2 class="title">Comments</h2-->
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+</div>
+	<footer id="footer" class="inner"><footer>
+<hr>
+<div class="about">
+<a href="https://twitter.com/Yyoubuer"><img src="https://s.gravatar.com/avatar/34fe2d98d60e35a82cf6d649e1f93a91?s=640"></img></a>
+<h4>Fan You</h4>
+	<p><a href="https://twitter.com/Yyoubuer">@fanyou</a>. A programmer studying in Carnegie Mellon University. Love music, game. See My <a href="http://fyoubuertec.wordpress.com/">Portfolio</a> and <a href="https://fyoubuertec.files.wordpress.com/2014/12/fanyou_se1.pdf">Resumé</a>. Contact me via <a href="mailto:youfan.noey@gamil.com">e-mail</a>.</p>
+</div>
+
+<div class="copy">
+&copy; 2015
+<a href="http://fyou.me/">fyou.me</a>
+</div>
+</footer>
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/hyphenator.js"></script>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'buertec';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://fyou.me/blog/2015/03/29/stdlibc-plus-plus/';
+        var disqus_url = 'http://fyou.me/blog/2015/03/29/stdlibc-plus-plus/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+</body>
+<script>
+  $(document).ready(function() {
+  // Make images center
+  $('p:has(img)').css('text-align', 'center');
+  });
+</script>
+</html>

@@ -1,0 +1,201 @@
+
+<!DOCTYPE HTML>
+<html lang="en-GB">
+<head>
+	<meta charset="utf-8">
+	<title>关于堆分配和栈分配思考以及指针和引用  | NOEY</title>
+
+	<meta name="author" content="Fan You">
+
+<meta name="description" content="栈分配 传统栈分配的例子: 1
+2
+3
+4
+int GiveVal(int a) { int x = a; return x;
+} 这是合法的栈分配意思是在执行完整个方法后,将里边的数据copy一份,return给外边以后,再将自身的数据a,x释放掉。 堆分配的产生 &hellip;"> <meta name="keywords" content="">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="NOEY" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+
+</head>
+
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">NOEY</a></h1>
+<span class="tagline"></span>
+
+
+</header>
+
+	<div id="content" class="inner"><article class="post">
+	<header>
+		<h2 class="title">关于堆分配和栈分配思考以及指针和引用</h2>
+		<div class="meta date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-31T01:33:26-05:00" pubdate data-updated="true"></time></div>
+	</header>
+	<div class="entry-content"><h4>栈分配</h4>
+
+<p>传统栈分配的例子:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="kt">int</span> <span class="nf">GiveVal</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">x</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">x</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这是合法的栈分配意思是在执行完整个方法后,将里边的数据copy一份,return给外边以后,再将自身的数据a,x释放掉。</p>
+
+<h4>堆分配的产生</h4>
+
+<p>由于栈分配在小规模操作的时候还好,但是上升到大规模的运算时候,拷贝的速度会变的非常的慢。
+所以就干脆不释放运算过程中的数据，直接将地址return出来。
+传统做法是这样的:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="n">FWidget</span><span class="o">*</span> <span class="nf">CreateWidget</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">,</span> <span class="kt">int</span> <span class="n">z</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="n">FWidget</span><span class="o">*</span> <span class="n">NewWidgetPointer</span> <span class="o">=</span> <span class="n">new</span> <span class="n">FWidget</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">NewWidgetPointer</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>引用</h4>
+
+<p>int b = 3;
+int&amp; a = b;
+这个等价于
+int b = 3;
+int<em> ap = &b;
+a = 4; 等价于 </em>ap = 4;
+&amp;a 等价于 ap
+唯一不等价的是你没法改ap指向谁
+ap只能指向b，不能换人</p>
+
+<h4>例题</h4>
+
+<p>下图方法有什么问题:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="n">FWidget</span><span class="o">&amp;</span> <span class="n">CreateWidget</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">,</span> <span class="kt">int</span> <span class="n">z</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="n">FWidget</span> <span class="n">NewWidget</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">);</span> <span class="c1">// 栈分配</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">NewWidget</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>等价写法:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='C'><span class='line'><span class="n">FWidget</span><span class="o">*</span> <span class="nf">CreateWidget</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">,</span> <span class="kt">int</span> <span class="n">z</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="n">FWidget</span>  <span class="n">NewWidget</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">return</span> <span class="o">&amp;</span><span class="n">NewWidget</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>问题:
+return 出去以后原来的东西就被释放了。</p>
+</div>
+
+</article>
+
+	
+	<div class="share">
+	</div>
+
+
+
+
+<section id="comment">
+    <!--h2 class="title">Comments</h2-->
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+</div>
+	<footer id="footer" class="inner"><footer>
+<hr>
+<div class="about">
+<a href="https://twitter.com/Yyoubuer"><img src="https://s.gravatar.com/avatar/34fe2d98d60e35a82cf6d649e1f93a91?s=640"></img></a>
+<h4>Fan You</h4>
+	<p><a href="https://twitter.com/Yyoubuer">@fanyou</a>. A programmer studying in Carnegie Mellon University. Love music, game. See My <a href="http://fyoubuertec.wordpress.com/">Portfolio</a> and <a href="https://fyoubuertec.files.wordpress.com/2014/12/fanyou_se1.pdf">Resumé</a>. Contact me via <a href="mailto:youfan.noey@gamil.com">e-mail</a>.</p>
+</div>
+
+<div class="copy">
+&copy; 2015
+<a href="http://fyou.me/">fyou.me</a>
+</div>
+</footer>
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/hyphenator.js"></script>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'buertec';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://fyou.me/blog/2014/12/31/heapstack/';
+        var disqus_url = 'http://fyou.me/blog/2014/12/31/heapstack/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+</body>
+<script>
+  $(document).ready(function() {
+  // Make images center
+  $('p:has(img)').css('text-align', 'center');
+  });
+</script>
+</html>

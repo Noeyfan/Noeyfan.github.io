@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: bvw | NOEY]]></title>
+  <link href="http://fyou.me/blog/categories/bvw/atom.xml" rel="self"/>
+  <link href="http://fyou.me/"/>
+  <updated>2015-07-09T18:02:54-04:00</updated>
+  <id>http://fyou.me/</id>
+  <author>
+    <name><![CDATA[Fan You]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Midterm]]></title>
+    <link href="http://fyou.me/blog/2014/10/13/midterm/"/>
+    <updated>2014-10-13T13:14:52-04:00</updated>
+    <id>http://fyou.me/blog/2014/10/13/midterm</id>
+    <content type="html"><![CDATA[<p>一不小心学期就已经过半了，这几天特别的闲反而却莫名的恐惧了起来。从round 0 什么都不会做出来的飞机到round 3独立完成了类似找茬的游戏，时间快的像是高速公路,却又突然被踩住了刹车。经常吐槽遇到了一些不靠谱的队友，回头再看看的时候却又庆幸遇到了这一些可爱的人。</p>
+
+<p>之前博客坏了，一直心情很烦躁感慨很多觉得如果写下来几天几夜也会写不完，结果费劲千辛万苦修好了博客打开新post却又瞬间无话可说。我一直是这么纠结蛋疼三分钟热度的人却一直自诩很能坚持。其实我只是习惯被目标奴役，一旦没事可做的时候就原形毕露。能写两个傻逼Unity小游戏就以为自己了不起了，正好被过来玩的米米又打击一番。颤颤巍巍的打开<em>cc</em>，发现好不容易暑假前弄了点基础又全忘光光了。</p>
+
+<p>在大家都在忙期中考试的时候我难得的在悠闲的码博客，其实也没什么事情要说，就是觉得该写点什么了，至于写的是什么我也不清楚。觉得自己最近脑洞开的太大，不仅思维发散了，灵魂也发散了。记得原来爷爷炫耀他当年枪毙犯人的时候，一枪开过去，犯人应声倒地。通常是真死了，也不乏有个别走火且演技特别好的。爷爷怕他们没死绝，就上去用刀在他们脑子里搅一搅。最近想出了攒钱买车的主义然后天天送外卖，我觉得自己挺天才，但同时觉得自己的脑子也该搅一搅了。</p>
+
+<p>晚上躺床上突然想到了这学期就只剩下两个round了，结束以后大家就会到自己的小房间去了。感觉原来是一大块披萨可以随便吃，结果几刀下去就变成一块一块的了. 我是共产主义党员，对这种事总是特别悲观。3周时间的BVW仿佛每个人都进入了慢动作，慢速不是休假，我喜欢手起刀落的利落，这对我更像一种折磨。</p>
+
+<p>记录两个还能记得的傻逼问题:</p>
+
+<pre><code>* 用swap完成洗牌
+* 遇到SSL Error When installing rubygems, Unable to pull data from 'https://rubygems.org/ ..... error时候记得要用sudo
+</code></pre>
+
+<p>嗯，就这么多了。</p>
+
+<h2>End</h2>
+
+<p><img src="/images/Pitt_img.JPG" alt="Ops" /></p>
+]]></content>
+  </entry>
+  
+</feed>
