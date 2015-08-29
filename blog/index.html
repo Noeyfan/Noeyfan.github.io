@@ -7,7 +7,7 @@
 
 	<meta name="author" content="Fan You">
 
-<meta name="description" content=" "> <meta name="keywords" content="">
+<meta name="description" content="libstdc++ 初窥 2015 Mar 29 stdlibc++ 面试总结 2015 Mar 1 random 关于堆分配和栈分配思考以及指针和引用 2014 Dec 31 tech 对于int64, int32的一点理解 2014 Dec 30 tech TCP Server-Client &hellip;"> <meta name="keywords" content="">
 
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -18,7 +18,6 @@
 	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 	
-
 </head>
 
 
@@ -31,6 +30,152 @@
 </header>
 
 	<div id="content" class="inner">
+        
+<article>
+	<h3><a href="/blog/2015/03/29/stdlibc-plus-plus/">libstdc++ 初窥</a></h3>
+	<div class="meta">
+		<span class="date">2015 Mar 29 </span>
+		<span class="tags">
+
+
+	<a class='category' href='/blog/categories/stdlibc-plus-plus/'>stdlibc++</a>
+
+
+</span>
+	</div>
+</article>
+
+
+        
+<article>
+	<h3><a href="/blog/2015/03/01/epic/">面试总结</a></h3>
+	<div class="meta">
+		<span class="date">2015 Mar  1 </span>
+		<span class="tags">
+
+
+	<a class='category' href='/blog/categories/random/'>random</a>
+
+
+</span>
+	</div>
+</article>
+
+
+        
+<article>
+	<h3><a href="/blog/2014/12/31/heapstack/">关于堆分配和栈分配思考以及指针和引用</a></h3>
+	<div class="meta">
+		<span class="date">2014 Dec 31 </span>
+		<span class="tags">
+
+
+	<a class='category' href='/blog/categories/tech/'>tech</a>
+
+
+</span>
+	</div>
+</article>
+
+
+        
+<article>
+	<h3><a href="/blog/2014/12/30/int/">对于int64, int32的一点理解</a></h3>
+	<div class="meta">
+		<span class="date">2014 Dec 30 </span>
+		<span class="tags">
+
+
+	<a class='category' href='/blog/categories/tech/'>tech</a>
+
+
+</span>
+	</div>
+</article>
+
+
+        
+<article>
+	<h3><a href="/blog/2014/11/24/tcp-prectise/">TCP Server-Client 实现</a></h3>
+	<div class="meta">
+		<span class="date">2014 Nov 24 </span>
+		<span class="tags">
+
+
+	<a class='category' href='/blog/categories/c/'>c</a>, <a class='category' href='/blog/categories/tech/'>tech</a>
+
+
+</span>
+	</div>
+</article>
+
+
+        
+<article>
+	<h3><a href="/blog/2014/11/22/p-thread/">Function Pointer</a></h3>
+	<div class="meta">
+		<span class="date">2014 Nov 22 </span>
+		<span class="tags">
+
+
+	<a class='category' href='/blog/categories/c/'>c</a>, <a class='category' href='/blog/categories/tech/'>tech</a>
+
+
+</span>
+	</div>
+</article>
+
+
+        
+<article>
+	<h3><a href="/blog/2014/10/16/githubnotes/">Github Notes</a></h3>
+	<div class="meta">
+		<span class="date">2014 Oct 16 </span>
+		<span class="tags">
+
+
+	<a class='category' href='/blog/categories/git/'>git</a>, <a class='category' href='/blog/categories/tech/'>tech</a>
+
+
+</span>
+	</div>
+</article>
+
+
+        
+<article>
+	<h3><a href="/blog/2014/10/13/midterm/">Midterm</a></h3>
+	<div class="meta">
+		<span class="date">2014 Oct 13 </span>
+		<span class="tags">
+
+
+	<a class='category' href='/blog/categories/bvw/'>bvw</a>, <a class='category' href='/blog/categories/casual/'>casual</a>
+
+
+</span>
+	</div>
+</article>
+
+
+        
+<article>
+	<h3><a href="/blog/2014/10/11/hello/">Hello.World</a></h3>
+	<div class="meta">
+		<span class="date">2014 Oct 11 </span>
+		<span class="tags">
+
+
+	<a class='category' href='/blog/categories/casual/'>casual</a>
+
+
+</span>
+	</div>
+</article>
+
+
+
+
 
 <nav id="pagenavi">
     
@@ -38,17 +183,22 @@
 </nav>
 </div>
 	<footer id="footer" class="inner"><footer>
-<hr>
 <div class="about">
-<a href="https://twitter.com/Yyoubuer"><img src="https://s.gravatar.com/avatar/34fe2d98d60e35a82cf6d649e1f93a91?s=640"></img></a>
+<hr>
+<a href="https://twitter.com/youbuer"><img
+src="https://s.gravatar.com/avatar/34fe2d98d60e35a82cf6d649e1f93a91?s=640"></img></a>
 <h4>Fan You</h4>
-	<p><a href="https://twitter.com/Yyoubuer">@fanyou</a>. A programmer studying in Carnegie Mellon University. Love music, game. See My <a href="http://fyoubuertec.wordpress.com/">Portfolio</a> and <a href="https://fyoubuertec.files.wordpress.com/2014/12/fanyou_se1.pdf">Resumé</a>. Contact me via <a href="mailto:youfan.noey@gamil.com">e-mail</a>.</p>
+<p><a href="https://twitter.com/youbuer">@fanyou</a>. See My
+<a
+href="http://fyoubuertec.wordpress.com/">Portfolio</a>, <a href="https://fyou.me/about">Resumé</a>
+and <a href="https://fyou.me/about">Blog</a>.
+Contact me via <a href="mailto:youfan.noey@gamil.com">e-mail</a>.</p>
+</hr>
 </div>
 
 <div class="copy">
 &copy; 2015
-<a href="http://fyou.me/">fyou.me</a>
-</div>
+<a href="http://fyou.me/"></a>
 </footer>
 </footer>
 	<script src="/javascripts/slash.js"></script>
