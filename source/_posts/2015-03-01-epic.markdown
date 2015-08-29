@@ -3,8 +3,9 @@ layout: post
 title: "面试总结"
 date: 2015-03-01 15:41:09 -0500
 comments: true
-categories: 
+categories: [random]
 ---
+
 ###Epic
 说来这也算是这辈子第一次tech interview, 总结一下把。总体面试还是分为两块,技术性问题和非技术性问题。
 

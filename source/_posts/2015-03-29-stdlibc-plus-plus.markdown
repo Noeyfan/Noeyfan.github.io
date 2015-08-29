@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Extend shared\_ptr to support array[0]"
+title: "libstdc++ 初窥"
 date: 2015-03-29 00:02:53 -0400
 comments: true
 categories: [stdlibc++]

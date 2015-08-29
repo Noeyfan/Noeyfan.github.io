@@ -2,6 +2,10 @@
 layout: default
 ---
 
+{% for post in site.posts reverse %}
+        {% include archive_post.html %}
+{% endfor %}
+
 {% assign index = true %}
 {% for post in paginator.posts %}
 {% assign content = post.content %}

@@ -2,7 +2,30 @@
 layout: default
 title: fyou.me
 ---
-
-{% for post in site.posts reverse %}
-	{% include archive_post.html %}
-{% endfor %}
+<center>
+<script type="text/javascript">
+<!--
+var imlocation = "images/";
+var currentdate = 0;
+var image_number = 0;
+function ImageArray (n) {
+    this.length = n;
+    for (var i =1; i <= n; i++) {
+	this[i] = ' '
+    }
+}
+image = new ImageArray(3)
+     image[0] = 'Pitt_img.JPG'
+     image[1] = 'img_3911.jpg'
+     image[2] = 'dsc_9145.jpg'
+     var rand = 60/image.length
+     function randomimage() {
+	 currentdate = new Date()
+	   image_number = currentdate.getSeconds()
+	   image_number = Math.floor(image_number/rand)
+	   return(image[image_number])
+     }
+document.write('<img src="' + imlocation + randomimage() +  '" style="width: 90%; height: 90%"/>');
+//-->
+</script>
+</center>
