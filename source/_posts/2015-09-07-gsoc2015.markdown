@@ -1,0 +1,248 @@
+---
+layout: post
+title: "GSoC 2015 小结"
+date: 2015-09-07 00:02:53 -0400
+comments: true
+categories: [stdlibc++]
+---
+
+GSoC 2015 也算是结束了，期间学到了很多，也认识到了很多不足，拖延症患者拖到今天终于决定下笔记录下这一段经历，以便往后温习，吹逼之用。
+
+## Extend shared_ptr to support arrays
+
+第一个Propose的项目是[extend shared_ptr to support arrays](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4335.html#memory.smartptr.shared). 初始由于C＋＋技艺不精，甚至不知道shared_ptr是什么，所以先从shared_ptr的源码讲起吧。
+
+#### shared_ptr
+
+shared_ptr位于`libstdc++-v3/include/bits/shared_ptr.h`，这里的shared_ptr其实是对所有开放接口的一个封装，真正的实现在`shared_ptr_base.h`里。
+
+找到__shared_ptr定义的private member，会发现只有两个东西
+
+1. _Tp* _M_ptr;_                                                 // Contained Pointer
+2. \__shared_count<_LP> _M_refcount;           // Reference counter
+
+shared_ptr的实现也就依赖这两个东西，一个raw pointer，另一个引用计数。有新的object使用raw pointer refcount++, 同样destructor调用一次refcount- -,如果refcount ＝＝ 0，那么就释放_M_ptr;
+
+// 注（
+
+一个裸指针被托管以后，任何想要使用这个指针的行为都得通过shared_ptr，否则UB
+
+例如 
+
+``` c++
+int* a = new int(5);
+std::shared_ptr<int> sp(a);
+// int* b = a;
+// std::shared_ptr sb(b); undefined behavior
+auto sb = sp; // refcount+1
+```
+
+）
+
+说起来很简单，但是shared_ptr确实还是有不少坑。
+
+#### weak_ptr
+
+shared_ptr难免会出现这样的情况（cyclic reference），weak_ptr可以让持有执政却不增加引用计数。
+
+``` c++
+struct A {
+  std::shared_ptr<A> ptr;
+};
+
+void main() {
+  std::shared_ptr<A> x=std::make_shared<A>();
+  std::shared_ptr<A> y=std::make_shared<A>();
+
+  x->ptr = y; // not quite a cycle yet
+  y->ptr = x; // now we got a cycle x keeps y alive and y keeps x alive
+}
+```
+
+这样的情况，如果x 拿了一个指向y的weak_ptr就不存在这样的问题了。weak_ptr的用处很多，如[cache](http://stackoverflow.com/questions/12030650/when-is-stdweak-ptr-useful)。
+
+#### enable_shared_from_this
+
+参见我在知乎的[答案](http://zhihu.com/question/30957800/answer/50181754?utm_campaign=webshare&utm_source=weibo&utm_medium=zhihu)。用于在类内部拿取自身的shared_ptr。
+
+在每次构造一个`shared_ptr<T>`时都会检查T是否继承自enable_shared_from_this，如果是，会在自身的private member里保存一个weak_ptr，以后用shared_from_this()拿取自身的shared_ptr.
+
+#### support for arrays
+
+来到正题，shared_ptr虽然好用，但是对数组的支持并不好，也就是说，可以用但是基本没用。需要传入自己的destructor以保证资源正确释放。
+
+``` c++
+#include <memory>
+
+ int main()
+ {
+   int array[3];
+   std::shared_ptr<int[3]> p(&array, [](int*p ){delete p;});
+ }
+```
+
+为了将数组支持加入shared_ptr且保证之前使用shared_ptr的代码不出错，决定使用一个新的tag
+
+``` c++
+template <typename _Tp>
+  struct __libfund_v1 { using type = _Tp; };
+```
+
+来和原本的__shared_ptr加以区分。
+
+1. 做一个
+   
+   ``` c++
+   class __shared_ptr<__libfund_v1<T>>
+   :__shared_ptr<typename remove_extent<_Tp>::type, _Lp>{ }
+   ```
+   
+   //注（此处应做成private继承）
+   
+2. 内部准备两个Deleter: _Array_Deleter 和 \_Normal_Deleter。
+   
+3. 根据T的类型选择使用Deleter
+   
+   ``` c++
+   using _Deleter_type
+   = typename conditional<is_array<_Tp>::value,_Array_Deleter,_Normal_Deleter>::type;
+   ```
+   
+4. 其他的情况只要pass到基类处理就好。
+
+整体的难度不是很大，但摸清gcc的coding style和这些代码的工作原理，着实费了番工夫。
+
+当shared_ptr用在array时，其中有种情况跟原本不一样, 原本shared_ptr的构造函数可以接受能够进行implicit cast的类型。当放到数组是这一规则不再适用。
+
+``` c++
+class Base { };
+class Derived : public Base { };
+
+int main() {
+  Base* b = new Derived(); // ok
+  Base b_array[2];
+  b_array = new Derived[2]; // if Base and Derived are of difference
+  							// b_array[1] may cause trouble. "pointer arithmatic"
+}
+```
+
+#### 技巧
+
+``` c++
+// helper for _Compatible
+template<typename _From_type, typename _To_type>
+  struct __sp_compatible_helper
+  { static constexpr bool value
+    = is_convertible<_From_type*, _To_type*>::value; };
+
+template<size_t _Nm, typename _Tp>
+  struct __sp_compatible_helper<_Tp[_Nm], _Tp[]>
+  { static constexpr bool value = true; };
+```
+
+C++中用偏特化做SFINAE的例子非常常见，是很好的技巧，要铭记。
+
+
+
+## Polymorphic Allocator
+
+allocator这个概念应该还不是很常见，大多数时候这些都有stl内部进行管理，不用担心，但是有些时候，当用户想用自定义的allocator的时候，问题随之而来。
+
+``` c++
+std::vector<A, alloc1> vec1;
+std::vector<A, alloc2> vec2;
+// oops, vec1 and vec2 now have different types now, which should not happen.
+```
+
+Polymorphic Allocator 也就为了解决这个问题而生。
+
+#### Allocator
+
+一个完备的allocator需要具备一些[条件](http://en.cppreference.com/w/cpp/concept/Allocator)，一个最简单的allocator可以仅仅是malloc和free的封装。
+
+#### memory_resource
+
+在Polymorphic Allocator的实现里，根据proposal引入了一个新的虚类`memory_resource`定义了三个virtual接口:
+
+1. do_allocate();
+2. do_deallocate();
+3. do_is_equal();
+
+#### polymorphic_allocator
+
+``` c++
+template <class _Tp>
+  class polymorphic_allocator { }
+```
+
+这个class就是memory_resource的wrapper，给予了一个完备（前边提到）allocator的所有接口。这样让比如`list<int, polymorphic_allocator<int>>`虽然类型一样却使用可能了不同的allocator（在这里插一句，标准库容器std::vector之类比较于shared_ptr（多态）的实现，shared_ptr将allocator通过actor的方式传进来，不得不说是一种设计上的进步。）
+
+这些接口主要负责两个功能：
+
+1. 分配memory
+2. 构造对象
+
+polymorphic_allocator里存着个memory_resource*，负责真正进行allocator和deallocate，没有指定时默认为get_default_resource();
+
+构造基于uses-allocator construction用::new(…);（placement new）进行构造。比较恶心的是pair 的piecewise construction，感兴趣的自行搜索，我是看都不想多看一眼。
+
+#### resource_adaptor
+
+``` c++
+template <typename _Alloc>
+  class __resource_adaptor_imp : public memory_resource { }
+
+template <typename _Alloc>
+  using resource_adaptor = __resource_adaptor_imp<
+    typename allocator_traits<_Alloc>::template rebind_alloc<char>>;
+```
+
+这个class是对allocator的wrapper，把_Alloc包装成memory_resource，这样resource_adaptor<X<T\>>和resource_adaptor<X<U\>>就是一种类型了（都是memory_resource）。
+
+所以通常可以这样，resource_adaptor包装allocator，送给polymorphic_allocator使用。
+
+#### Global Resource
+
+在写Global Resource的时候遇到了一个static和inline的[问题](http://stackoverflow.com/questions/185624/static-variables-in-an-inlined-function)值得讨论：
+
+在头文件中如果写了static function/variable，那么每个编译单元都会有一个自己的function造成浪费。所以一半生成global resource的方法是inline function返回static variable;
+
+``` c++
+inline std::atomic<memory_resource*>&
+__get_default_resource()
+{
+  static std::atomic<memory_resource*>
+    _S_default_resource(new_delete_resource());
+  return _S_default_resource;
+}
+```
+
+补充一些关于static的知识：
+
+``` c++
+static int a; -> static int a; //multiple copies
+struct A { static int a; } int A::a = 3; -> struct A {}; int A_a = 3;
+```
+
+第二种纯粹表示生命周期比较长（相当于有个只有自己能访问的全局变量。）
+
+static in class == static in function;
+
+static class/type == static function;
+
+#### 技巧
+
+bit manipulation来计算alignment的技巧也非常酷炫，值得学习。
+
+``` 
+static size_t _S_aligned_size(size_t __size, size_t __alignment)
+{ return ((__size - 1)|(__alignment - 1)) + 1; }
+```
+
+
+
+# 后记
+
+感谢tim和john给了个充实的暑假，以后想起来啥在写吧，就这样了:)
+
+（特别鸣谢老婆给的关心与支持，爱你❤️）
