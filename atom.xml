@@ -4,13 +4,329 @@
   <title><![CDATA[NOEY]]></title>
   <link href="http://fyou.me/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2015-08-28T23:36:43-04:00</updated>
+  <updated>2015-09-07T01:22:49-04:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
     
   </author>
 
+  
+  <entry>
+    <title type="html"><![CDATA[GSoC 2015 小结]]></title>
+    <link href="http://fyou.me/blog/2015/09/07/gsoc2015/"/>
+    <updated>2015-09-07T00:02:53-04:00</updated>
+    <id>http://fyou.me/blog/2015/09/07/gsoc2015</id>
+    <content type="html"><![CDATA[<p>GSoC 2015 也算是结束了，期间学到了很多，也认识到了很多不足，拖延症患者拖到今天终于决定下笔记录下这一段经历，以便往后温习，吹逼之用。</p>
+
+<h2>Extend shared_ptr to support arrays</h2>
+
+<p>第一个Propose的项目是<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4335.html#memory.smartptr.shared">extend shared_ptr to support arrays</a>. 初始由于C＋＋技艺不精，甚至不知道shared_ptr是什么，所以先从shared_ptr的源码讲起吧。</p>
+
+<h4>shared_ptr</h4>
+
+<p>shared_ptr位于<code>libstdc++-v3/include/bits/shared_ptr.h</code>，这里的shared_ptr其实是对所有开放接口的一个封装，真正的实现在<code>shared_ptr_base.h</code>里。</p>
+
+<p>找到__shared_ptr定义的private member，会发现只有两个东西</p>
+
+<ol>
+<li><em>Tp* </em>M_ptr;_                                                 // Contained Pointer</li>
+<li>_<em>shared_count<_LP> </em>M_refcount;           // Reference counter</li>
+</ol>
+
+
+<p>shared_ptr的实现也就依赖这两个东西，一个raw pointer，另一个引用计数。有新的object使用raw pointer refcount++, 同样destructor调用一次refcount- -,如果refcount ＝＝ 0，那么就释放_M_ptr;</p>
+
+<p>// 注（</p>
+
+<p>一个裸指针被托管以后，任何想要使用这个指针的行为都得通过shared_ptr，否则UB</p>
+
+<p>例如</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="kt">int</span><span class="o">*</span> <span class="n">a</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+</span><span class='line'><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">sp</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+</span><span class='line'><span class="c1">// int* b = a;</span>
+</span><span class='line'><span class="c1">// std::shared_ptr sb(b); undefined behavior</span>
+</span><span class='line'><span class="k">auto</span> <span class="n">sb</span> <span class="o">=</span> <span class="n">sp</span><span class="p">;</span> <span class="c1">// refcount+1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>）</p>
+
+<p>说起来很简单，但是shared_ptr确实还是有不少坑。</p>
+
+<h4>weak_ptr</h4>
+
+<p>shared_ptr难免会出现这样的情况（cyclic reference），weak_ptr可以让持有执政却不增加引用计数。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">struct</span> <span class="n">A</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span> <span class="n">ptr</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span> <span class="n">x</span><span class="o">=</span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span><span class="p">();</span>
+</span><span class='line'>  <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span> <span class="n">y</span><span class="o">=</span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">A</span><span class="o">&gt;</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">x</span><span class="o">-&gt;</span><span class="n">ptr</span> <span class="o">=</span> <span class="n">y</span><span class="p">;</span> <span class="c1">// not quite a cycle yet</span>
+</span><span class='line'>  <span class="n">y</span><span class="o">-&gt;</span><span class="n">ptr</span> <span class="o">=</span> <span class="n">x</span><span class="p">;</span> <span class="c1">// now we got a cycle x keeps y alive and y keeps x alive</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样的情况，如果x 拿了一个指向y的weak_ptr就不存在这样的问题了。weak_ptr的用处很多，如<a href="http://stackoverflow.com/questions/12030650/when-is-stdweak-ptr-useful">cache</a>。</p>
+
+<h4>enable_shared_from_this</h4>
+
+<p>参见我在知乎的<a href="http://zhihu.com/question/30957800/answer/50181754?utm_campaign=webshare&amp;utm_source=weibo&amp;utm_medium=zhihu">答案</a>。用于在类内部拿取自身的shared_ptr。</p>
+
+<p>在每次构造一个<code>shared_ptr&lt;T&gt;</code>时都会检查T是否继承自enable_shared_from_this，如果是，会在自身的private member里保存一个weak_ptr，以后用shared_from_this()拿取自身的shared_ptr.</p>
+
+<h4>support for arrays</h4>
+
+<p>来到正题，shared_ptr虽然好用，但是对数组的支持并不好，也就是说，可以用但是基本没用。需要传入自己的destructor以保证资源正确释放。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="cp">#include &lt;memory&gt;</span>
+</span><span class='line'>
+</span><span class='line'> <span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+</span><span class='line'> <span class="p">{</span>
+</span><span class='line'>   <span class="kt">int</span> <span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+</span><span class='line'>   <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">&gt;</span> <span class="n">p</span><span class="p">(</span><span class="o">&amp;</span><span class="n">array</span><span class="p">,</span> <span class="p">[](</span><span class="kt">int</span><span class="o">*</span><span class="n">p</span> <span class="p">){</span><span class="k">delete</span> <span class="n">p</span><span class="p">;});</span>
+</span><span class='line'> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了将数组支持加入shared_ptr且保证之前使用shared_ptr的代码不出错，决定使用一个新的tag</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">_Tp</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="k">struct</span> <span class="n">__libfund_v1</span> <span class="p">{</span> <span class="k">using</span> <span class="n">type</span> <span class="o">=</span> <span class="n">_Tp</span><span class="p">;</span> <span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>来和原本的__shared_ptr加以区分。</p>
+
+<ol>
+<li><p>做一个</p>
+
+<pre><code class="c++">class __shared_ptr&lt;__libfund_v1&lt;T&gt;&gt;
+:__shared_ptr&lt;typename remove_extent&lt;_Tp&gt;::type, _Lp&gt;{ }
+</code></pre>
+
+<p>//注（此处应做成private继承）</p></li>
+<li><p>内部准备两个Deleter: _Array_Deleter 和 _Normal_Deleter。</p></li>
+<li><p>根据T的类型选择使用Deleter</p>
+
+<pre><code class="c++">using _Deleter_type
+= typename conditional&lt;is_array&lt;_Tp&gt;::value,_Array_Deleter,_Normal_Deleter&gt;::type;
+</code></pre></li>
+<li><p>其他的情况只要pass到基类处理就好。</p></li>
+</ol>
+
+
+<p>整体的难度不是很大，但摸清gcc的coding style和这些代码的工作原理，着实费了番工夫。</p>
+
+<p>当shared_ptr用在array时，其中有种情况跟原本不一样, 原本shared_ptr的构造函数可以接受能够进行implicit cast的类型。当放到数组是这一规则不再适用。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Base</span> <span class="p">{</span> <span class="p">};</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Derived</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Base</span> <span class="p">{</span> <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">Base</span><span class="o">*</span> <span class="n">b</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Derived</span><span class="p">();</span> <span class="c1">// ok</span>
+</span><span class='line'>  <span class="n">Base</span> <span class="n">b_array</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">b_array</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Derived</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span> <span class="c1">// if Base and Derived are of difference</span>
+</span><span class='line'>                              <span class="c1">// b_array[1] may cause trouble. &quot;pointer arithmatic&quot;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>技巧</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="c1">// helper for _Compatible</span>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">_From_type</span><span class="p">,</span> <span class="k">typename</span> <span class="n">_To_type</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="k">struct</span> <span class="n">__sp_compatible_helper</span>
+</span><span class='line'>  <span class="p">{</span> <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">bool</span> <span class="n">value</span>
+</span><span class='line'>    <span class="o">=</span> <span class="n">is_convertible</span><span class="o">&lt;</span><span class="n">_From_type</span><span class="o">*</span><span class="p">,</span> <span class="n">_To_type</span><span class="o">*&gt;::</span><span class="n">value</span><span class="p">;</span> <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="kt">size_t</span> <span class="n">_Nm</span><span class="p">,</span> <span class="k">typename</span> <span class="n">_Tp</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="k">struct</span> <span class="n">__sp_compatible_helper</span><span class="o">&lt;</span><span class="n">_Tp</span><span class="p">[</span><span class="n">_Nm</span><span class="p">],</span> <span class="n">_Tp</span><span class="p">[]</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="p">{</span> <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">bool</span> <span class="n">value</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span> <span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>C++中用偏特化做SFINAE的例子非常常见，是很好的技巧，要铭记。</p>
+
+<h2>Polymorphic Allocator</h2>
+
+<p>allocator这个概念应该还不是很常见，大多数时候这些都有stl内部进行管理，不用担心，但是有些时候，当用户想用自定义的allocator的时候，问题随之而来。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">alloc1</span><span class="o">&gt;</span> <span class="n">vec1</span><span class="p">;</span>
+</span><span class='line'><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">A</span><span class="p">,</span> <span class="n">alloc2</span><span class="o">&gt;</span> <span class="n">vec2</span><span class="p">;</span>
+</span><span class='line'><span class="c1">// oops, vec1 and vec2 now have different types now, which should not happen.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Polymorphic Allocator 也就为了解决这个问题而生。</p>
+
+<h4>Allocator</h4>
+
+<p>一个完备的allocator需要具备一些<a href="http://en.cppreference.com/w/cpp/concept/Allocator">条件</a>，一个最简单的allocator可以仅仅是malloc和free的封装。</p>
+
+<h4>memory_resource</h4>
+
+<p>在Polymorphic Allocator的实现里，根据proposal引入了一个新的虚类<code>memory_resource</code>定义了三个virtual接口:</p>
+
+<ol>
+<li>do_allocate();</li>
+<li>do_deallocate();</li>
+<li>do_is_equal();</li>
+</ol>
+
+
+<h4>polymorphic_allocator</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">_Tp</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">polymorphic_allocator</span> <span class="p">{</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个class就是memory_resource的wrapper，给予了一个完备（前边提到）allocator的所有接口。这样让比如<code>list&lt;int, polymorphic_allocator&lt;int&gt;&gt;</code>虽然类型一样却使用可能了不同的allocator（在这里插一句，标准库容器std::vector之类比较于shared_ptr（多态）的实现，shared_ptr将allocator通过actor的方式传进来，不得不说是一种设计上的进步。）</p>
+
+<p>这些接口主要负责两个功能：</p>
+
+<ol>
+<li>分配memory</li>
+<li>构造对象</li>
+</ol>
+
+
+<p>polymorphic_allocator里存着个memory_resource*，负责真正进行allocator和deallocate，没有指定时默认为get_default_resource();</p>
+
+<p>构造基于uses-allocator construction用::new(…);（placement new）进行构造。比较恶心的是pair 的piecewise construction，感兴趣的自行搜索，我是看都不想多看一眼。</p>
+
+<h4>resource_adaptor</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">_Alloc</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">__resource_adaptor_imp</span> <span class="o">:</span> <span class="k">public</span> <span class="n">memory_resource</span> <span class="p">{</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">_Alloc</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="k">using</span> <span class="n">resource_adaptor</span> <span class="o">=</span> <span class="n">__resource_adaptor_imp</span><span class="o">&lt;</span>
+</span><span class='line'>    <span class="k">typename</span> <span class="n">allocator_traits</span><span class="o">&lt;</span><span class="n">_Alloc</span><span class="o">&gt;::</span><span class="k">template</span> <span class="n">rebind_alloc</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个class是对allocator的wrapper，把_Alloc包装成memory_resource，这样resource_adaptor&lt;X&lt;T>>和resource_adaptor&lt;X&lt;U>>就是一种类型了（都是memory_resource）。</p>
+
+<p>所以通常可以这样，resource_adaptor包装allocator，送给polymorphic_allocator使用。</p>
+
+<h4>Global Resource</h4>
+
+<p>在写Global Resource的时候遇到了一个static和inline的<a href="http://stackoverflow.com/questions/185624/static-variables-in-an-inlined-function">问题</a>值得讨论：</p>
+
+<p>在头文件中如果写了static function/variable，那么每个编译单元都会有一个自己的function造成浪费。所以一半生成global resource的方法是inline function返回static variable;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="kr">inline</span> <span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="n">memory_resource</span><span class="o">*&gt;&amp;</span>
+</span><span class='line'><span class="n">__get_default_resource</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="n">memory_resource</span><span class="o">*&gt;</span>
+</span><span class='line'>    <span class="n">_S_default_resource</span><span class="p">(</span><span class="n">new_delete_resource</span><span class="p">());</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">_S_default_resource</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>补充一些关于static的知识：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">static</span> <span class="kt">int</span> <span class="n">a</span><span class="p">;</span> <span class="o">-&gt;</span> <span class="k">static</span> <span class="kt">int</span> <span class="n">a</span><span class="p">;</span> <span class="c1">//multiple copies</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">A</span> <span class="p">{</span> <span class="k">static</span> <span class="kt">int</span> <span class="n">a</span><span class="p">;</span> <span class="p">}</span> <span class="kt">int</span> <span class="n">A</span><span class="o">::</span><span class="n">a</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="o">-&gt;</span> <span class="k">struct</span> <span class="n">A</span> <span class="p">{};</span> <span class="kt">int</span> <span class="n">A_a</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第二种纯粹表示生命周期比较长（相当于有个只有自己能访问的全局变量。）</p>
+
+<p>static in class == static in function;</p>
+
+<p>static class/type == static function;</p>
+
+<h4>技巧</h4>
+
+<p>bit manipulation来计算alignment的技巧也非常酷炫，值得学习。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">static</span> <span class="kt">size_t</span> <span class="nf">_S_aligned_size</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">__size</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">__alignment</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span> <span class="k">return</span> <span class="p">((</span><span class="n">__size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">|</span><span class="p">(</span><span class="n">__alignment</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>后记</h1>
+
+<p>感谢tim和john给了个充实的暑假，以后想起来啥在写吧，就这样了:)</p>
+
+<p>（特别鸣谢老婆给的关心与支持，爱你❤️）</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[libstdc++ 初窥]]></title>
