@@ -4,7 +4,7 @@
   <title><![CDATA[NOEY]]></title>
   <link href="http://fyou.me/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2015-10-20T15:53:58-04:00</updated>
+  <updated>2017-06-07T01:34:59-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -13,10 +13,276 @@
 
   
   <entry>
+    <title type="html"><![CDATA[Regex Matching]]></title>
+    <link href="http://fyou.me/blog/2017/06/07/regex-matching/"/>
+    <updated>2017-06-07T01:30:00-07:00</updated>
+    <id>http://fyou.me/blog/2017/06/07/regex-matching</id>
+    <content type="html"><![CDATA[<p>准备督促自己刷刷题／打打codejam，保持手感，记录一些难倒过自己的题目，从错误开始到正确思路，（也许）包括一些深入的拓展。</p>
+
+<h4>题目</h4>
+
+<p>第一题就从<a href="https://leetcode.com/problems/regular-expression-matching/">Regular Expression Matching</a>开始好了，简言之写个方法:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="kt">bool</span> <span class="nf">isMatch</span><span class="p">(</span><span class="n">string</span> <span class="n">s</span><span class="p">,</span> <span class="n">string</span> <span class="n">regex</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>思路</h4>
+
+<p>超简化的Regular Expression Matching，通常只包含：<code>* . [a-Z]</code>几种元素，所以从简单入手分析所有可能的match情形:</p>
+
+<ul>
+<li><code>[a-Z]</code> 和 <code>[a-Z]</code>，属于exact match，只需要关注当前位置</li>
+<li><code>[a-Z]</code> 和 <code>.</code>， 属于any match，与上种情况类似，但是<code>\0</code> 和 <code>.</code> 是不能match的</li>
+<li><code>[a-Z]</code> 和 <code>([a-Z]|.)*</code>，属于repeat match, 也是这题的唯一难点，有两种情况，且可以用DFS暴力解决：
+
+<ul>
+<li><code>*</code> match 0 次: <code>[a-Z]</code> match <code>[a-Z]|.</code>  &amp;&amp; <code>s+1</code> 也要match <code>regex</code></li>
+<li><code>*</code> match >= 1 次: <code>s</code> match <code>regex+2</code></li>
+</ul>
+</li>
+</ul>
+
+
+<h4>曾犯错误</h4>
+
+<p>之下都是我在面试或者写题中出现过的错误：</p>
+
+<ul>
+<li>与WildCardMatching混淆，认为一个for loop可以解决（非DP）</li>
+<li>边界情况 <code>""</code> 与 <code>.*</code>的match</li>
+<li>For loop 和DFS 在此处混用，逻辑不清（紧张？？？）</li>
+<li>强行用c++ string 进DFS却又不想用index （<code>string::data() -&gt; const char*</code>）</li>
+<li>没有处理<code>\0</code> 和 <code>.</code> 的情况</li>
+</ul>
+
+
+<p>不怕笑话，试着回忆一些面试写的丑逼代码：</p>
+
+<h5>丑1:</h5>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="kt">bool</span> <span class="nf">isMatch</span><span class="p">(</span><span class="n">string</span> <span class="n">s</span><span class="p">,</span> <span class="n">string</span> <span class="n">regex</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="n">regex</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">r_i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">s</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">regex</span><span class="p">[</span><span class="n">r_i</span><span class="p">])</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="n">isMatch</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">regex</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="n">r_i</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">regex</span><span class="p">[</span><span class="n">r_i</span><span class="p">]</span> <span class="o">==</span> <span class="sc">&#39;*&#39;</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// should be regex[r_i+1] == &#39;*&#39;</span>
+</span><span class='line'>      <span class="k">return</span> <span class="n">isMatch</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">regex</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="n">r_i</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+</span><span class='line'>        <span class="o">||</span> <span class="n">isMatch</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">regex</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="n">r_i</span><span class="o">+</span><span class="mi">1</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">regex</span><span class="p">[</span><span class="n">r_i</span><span class="p">]</span> <span class="o">==</span> <span class="sc">&#39;.&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="n">isMatch</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">regex</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="n">r_i</span><span class="o">+</span><span class="mi">1</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h5>丑2：</h5>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="kt">bool</span> <span class="nf">isMatch</span><span class="p">(</span><span class="n">string</span> <span class="n">s</span><span class="p">,</span> <span class="n">string</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">imp</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">p</span><span class="p">.</span><span class="n">data</span><span class="p">());</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">bool</span> <span class="nf">imp</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">c</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">c</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span> <span class="o">||</span> <span class="o">*</span><span class="n">c</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span> <span class="c1">// ??? patching</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">p</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="sc">&#39;*&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">isMatch</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="o">||</span> <span class="n">isMatch</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="o">+</span><span class="mi">2</span><span class="p">);</span> <span class="c1">// should be || isMatch(c, p+2)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">c</span> <span class="o">==</span> <span class="o">*</span><span class="n">p</span> <span class="o">||</span> <span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">&#39;.&#39;</span><span class="p">)</span> <span class="p">{</span>  <span class="c1">// &#39;\0&#39; and &#39;.&#39;</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">isMatch</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>正确姿势</h4>
+
+<h5>DFS</h5>
+
+<p>算法清晰的情况下，DFS 解法基本等同于直接翻译：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="kt">bool</span> <span class="nf">isMatch</span><span class="p">(</span><span class="n">string</span> <span class="n">s</span><span class="p">,</span> <span class="n">string</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">imp</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">p</span><span class="p">.</span><span class="n">data</span><span class="p">());</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">bool</span> <span class="nf">imp</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">c</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="c1">// only when regex reaches the end, *c check make sense</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span><span class="p">)</span> <span class="k">return</span> <span class="o">*</span><span class="n">c</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">p</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="sc">&#39;*&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">((</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="o">*</span><span class="n">c</span> <span class="o">||</span> <span class="p">(</span><span class="o">*</span><span class="n">c</span> <span class="o">!=</span> <span class="sc">&#39;\0&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">&#39;.&#39;</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="n">isMatch</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span>
+</span><span class='line'>          <span class="o">||</span> <span class="n">isMatch</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">p</span><span class="o">+</span><span class="mi">2</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">c</span> <span class="o">==</span> <span class="o">*</span><span class="n">p</span> <span class="o">||</span> <span class="p">(</span><span class="o">*</span><span class="n">c</span> <span class="o">!=</span> <span class="sc">&#39;\0&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">&#39;.&#39;</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">isMatch</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h5>DP</h5>
+
+<p>DP的关键在于构建状态转移矩阵，而此处构建的方法为：令 <code>bool f[i][j]</code>为 <code>s[i-1]</code> match <code>p[j-1]</code> 的情况，然后写出 <code>f[i][j]</code> 与 <code>p[i-1]</code> <code>j[i-1]</code> 的关系，相同<strong>思路</strong>。</p>
+
+<p>其中初始化<code>f[0][j]</code>要有讲究（也就是<code>empty string</code> 与 什么样的<code>regex</code>算matching）。</p>
+
+<p>详细请看代码注释：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="c1">// Copy from Leetcode</span>
+</span><span class='line'><span class="kt">bool</span> <span class="nf">isMatch</span><span class="p">(</span><span class="n">string</span> <span class="n">s</span><span class="p">,</span> <span class="n">string</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * f[i][j]: if s[0..i-1] matches p[0..j-1]</span>
+</span><span class='line'><span class="cm">     * if p[j - 1] != &#39;*&#39;</span>
+</span><span class='line'><span class="cm">     *      f[i][j] = f[i - 1][j - 1] &amp;&amp; s[i - 1] == p[j - 1]</span>
+</span><span class='line'><span class="cm">     * if p[j - 1] == &#39;*&#39;, denote p[j - 2] with x</span>
+</span><span class='line'><span class="cm">     *      f[i][j] is true iff any of the following is true</span>
+</span><span class='line'><span class="cm">     *      1) &quot;x*&quot; repeats 0 time and matches empty: f[i][j - 2]</span>
+</span><span class='line'><span class="cm">     *      2) &quot;x*&quot; repeats &gt;= 1 times and matches &quot;x*x&quot;: s[i - 1] == x &amp;&amp; f[i - 1][j]</span>
+</span><span class='line'><span class="cm">     * &#39;.&#39; matches any single character</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">m</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">n</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+</span><span class='line'>    <span class="n">vector</span><span class="o">&lt;</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;&gt;</span> <span class="n">f</span><span class="p">(</span><span class="n">m</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">false</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">m</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+</span><span class='line'>    <span class="c1">// p[0.., j - 3, j - 2, j - 1] matches empty iff p[j - 1] is &#39;*&#39; </span>
+</span><span class='line'>      <span class="c1">// and p[0..j - 3] matches empty</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;=</span> <span class="n">n</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="sc">&#39;*&#39;</span> <span class="o">==</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span> <span class="o">-</span> <span class="mi">2</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">m</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;=</span> <span class="n">n</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="sc">&#39;*&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+</span><span class='line'>                                              <span class="o">||</span> <span class="sc">&#39;.&#39;</span> <span class="o">==</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]);</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="k">else</span>
+</span><span class='line'>                <span class="c1">// p[0] cannot be &#39;*&#39; so no need to check &quot;j &gt; 1&quot; here</span>
+</span><span class='line'>                <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">||</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span>
+</span><span class='line'>                                          <span class="o">||</span> <span class="sc">&#39;.&#39;</span> <span class="o">==</span> <span class="n">p</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">2</span><span class="p">])</span> <span class="o">&amp;&amp;</span> <span class="n">f</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">f</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="n">n</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>拓展</h4>
+
+<ul>
+<li>尝试用NFA解决真正的<code>regex</code>问题，尝试自己土制了一个小 <a href="https://github.com/Noeyfan/noey_algos/blob/master/noey_regex.h">regex lib</a>.</li>
+<li>还有Tim的 <a href="https://gist.github.com/Noeyfan/1c60fa6555f6cdc50fd2f55d78aed8a9">compile time regex (no parsing)</a></li>
+</ul>
+
+
+<h4>相似题目</h4>
+
+<p><code>// placeholder，将遇到的相似题目加入此处</code></p>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[GSoC 2015 小结]]></title>
-    <link href="http://fyou.me/blog/2015/09/07/gsoc2015/"/>
-    <updated>2015-09-07T00:02:53-04:00</updated>
-    <id>http://fyou.me/blog/2015/09/07/gsoc2015</id>
+    <link href="http://fyou.me/blog/2015/09/06/gsoc2015/"/>
+    <updated>2015-09-06T21:02:53-07:00</updated>
+    <id>http://fyou.me/blog/2015/09/06/gsoc2015</id>
     <content type="html"><![CDATA[<p>GSoC 2015 也算是结束了，期间学到了很多，也认识到了很多不足，拖延症患者拖到今天终于决定下笔记录下这一段经历，以便往后温习，吹逼之用。</p>
 
 <h2>Extend shared_ptr to support arrays</h2>
@@ -330,9 +596,9 @@
   
   <entry>
     <title type="html"><![CDATA[libstdc++ 初窥]]></title>
-    <link href="http://fyou.me/blog/2015/03/29/stdlibc-plus-plus/"/>
-    <updated>2015-03-29T00:02:53-04:00</updated>
-    <id>http://fyou.me/blog/2015/03/29/stdlibc-plus-plus</id>
+    <link href="http://fyou.me/blog/2015/03/28/stdlibc-plus-plus/"/>
+    <updated>2015-03-28T21:02:53-07:00</updated>
+    <id>http://fyou.me/blog/2015/03/28/stdlibc-plus-plus</id>
     <content type="html"><![CDATA[<p>写了两周stdlibc++.纪录点对c++的理解吧.</p>
 
 <h3><a href="http://en.cppreference.com/w/cpp/language/default_constructor">default constructor</a></h3>
@@ -781,7 +1047,7 @@
   <entry>
     <title type="html"><![CDATA[面试总结]]></title>
     <link href="http://fyou.me/blog/2015/03/01/epic/"/>
-    <updated>2015-03-01T15:41:09-05:00</updated>
+    <updated>2015-03-01T12:41:09-08:00</updated>
     <id>http://fyou.me/blog/2015/03/01/epic</id>
     <content type="html"><![CDATA[<h3>Epic</h3>
 
@@ -840,9 +1106,9 @@
   
   <entry>
     <title type="html"><![CDATA[关于堆分配和栈分配思考以及指针和引用]]></title>
-    <link href="http://fyou.me/blog/2014/12/31/heapstack/"/>
-    <updated>2014-12-31T01:33:26-05:00</updated>
-    <id>http://fyou.me/blog/2014/12/31/heapstack</id>
+    <link href="http://fyou.me/blog/2014/12/30/heapstack/"/>
+    <updated>2014-12-30T22:33:26-08:00</updated>
+    <id>http://fyou.me/blog/2014/12/30/heapstack</id>
     <content type="html"><![CDATA[<h4>栈分配</h4>
 
 <p>传统栈分配的例子:</p>
@@ -931,7 +1197,7 @@ return 出去以后原来的东西就被释放了。</p>
   <entry>
     <title type="html"><![CDATA[对于int64, int32的一点理解]]></title>
     <link href="http://fyou.me/blog/2014/12/30/int/"/>
-    <updated>2014-12-30T14:34:44-05:00</updated>
+    <updated>2014-12-30T11:34:44-08:00</updated>
     <id>http://fyou.me/blog/2014/12/30/int</id>
     <content type="html"><![CDATA[<h3>基本概念</h3>
 
@@ -1001,7 +1267,7 @@ a+1 的地址是&mdash;&ndash;> A + sizeof(T); // 此处是T而不是T*</p>
   <entry>
     <title type="html"><![CDATA[TCP Server-Client 实现]]></title>
     <link href="http://fyou.me/blog/2014/11/24/tcp-prectise/"/>
-    <updated>2014-11-24T22:22:50-05:00</updated>
+    <updated>2014-11-24T19:22:50-08:00</updated>
     <id>http://fyou.me/blog/2014/11/24/tcp-prectise</id>
     <content type="html"><![CDATA[<p>出于练习目的，决定自己实现一遍client-server的基础模型.
 <a href="https://github.com/Noeyfan/crack_code_interview/tree/master/socket">源码</a></p>
@@ -1234,7 +1500,7 @@ epoll会把哪个流发生了怎样的I/O事件通知我们。此时我们对这
   <entry>
     <title type="html"><![CDATA[Function Pointer]]></title>
     <link href="http://fyou.me/blog/2014/11/22/p-thread/"/>
-    <updated>2014-11-22T16:19:47-05:00</updated>
+    <updated>2014-11-22T13:19:47-08:00</updated>
     <id>http://fyou.me/blog/2014/11/22/p-thread</id>
     <content type="html"><![CDATA[<p>今天才知道各各系统的man是不一样的,mac下查man还是上网查把。</p>
 
@@ -1437,7 +1703,7 @@ epoll会把哪个流发生了怎样的I/O事件通知我们。此时我们对这
   <entry>
     <title type="html"><![CDATA[Github Notes]]></title>
     <link href="http://fyou.me/blog/2014/10/16/githubnotes/"/>
-    <updated>2014-10-16T17:00:06-04:00</updated>
+    <updated>2014-10-16T14:00:06-07:00</updated>
     <id>http://fyou.me/blog/2014/10/16/githubnotes</id>
     <content type="html"><![CDATA[<h3>Normal Usage</h3>
 
@@ -1595,7 +1861,7 @@ epoll会把哪个流发生了怎样的I/O事件通知我们。此时我们对这
   <entry>
     <title type="html"><![CDATA[Midterm]]></title>
     <link href="http://fyou.me/blog/2014/10/13/midterm/"/>
-    <updated>2014-10-13T13:14:52-04:00</updated>
+    <updated>2014-10-13T10:14:52-07:00</updated>
     <id>http://fyou.me/blog/2014/10/13/midterm</id>
     <content type="html"><![CDATA[<p>一不小心学期就已经过半了，这几天特别的闲反而却莫名的恐惧了起来。从round 0 什么都不会做出来的飞机到round 3独立完成了类似找茬的游戏，时间快的像是高速公路,却又突然被踩住了刹车。经常吐槽遇到了一些不靠谱的队友，回头再看看的时候却又庆幸遇到了这一些可爱的人。</p>
 
@@ -1624,7 +1890,7 @@ epoll会把哪个流发生了怎样的I/O事件通知我们。此时我们对这
   <entry>
     <title type="html"><![CDATA[Hello.World]]></title>
     <link href="http://fyou.me/blog/2014/10/11/hello/"/>
-    <updated>2014-10-11T15:12:24-04:00</updated>
+    <updated>2014-10-11T12:12:24-07:00</updated>
     <id>http://fyou.me/blog/2014/10/11/hello</id>
     <content type="html"><![CDATA[<p>之前电脑坏了，博客没有备份。重新写又懒得弄，现在摘取点重点</p>
 

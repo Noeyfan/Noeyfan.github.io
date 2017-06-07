@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: interview | NOEY]]></title>
+  <link href="http://fyou.me/blog/categories/interview/atom.xml" rel="self"/>
+  <link href="http://fyou.me/"/>
+  <updated>2017-06-07T01:34:59-07:00</updated>
+  <id>http://fyou.me/</id>
+  <author>
+    <name><![CDATA[Fan You]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Regex Matching]]></title>
+    <link href="http://fyou.me/blog/2017/06/07/regex-matching/"/>
+    <updated>2017-06-07T01:30:00-07:00</updated>
+    <id>http://fyou.me/blog/2017/06/07/regex-matching</id>
+    <content type="html"><![CDATA[<p>准备督促自己刷刷题／打打codejam，保持手感，记录一些难倒过自己的题目，从错误开始到正确思路，（也许）包括一些深入的拓展。</p>
+
+<h4>题目</h4>
+
+<p>第一题就从<a href="https://leetcode.com/problems/regular-expression-matching/">Regular Expression Matching</a>开始好了，简言之写个方法:</p>
+
+<pre><code class="c++">bool isMatch(string s, string regex);
+</code></pre>
+
+<h4>思路</h4>
+
+<p>超简化的Regular Expression Matching，通常只包含：<code>* . [a-Z]</code>几种元素，所以从简单入手分析所有可能的match情形:</p>
+
+<ul>
+<li><code>[a-Z]</code> 和 <code>[a-Z]</code>，属于exact match，只需要关注当前位置</li>
+<li><code>[a-Z]</code> 和 <code>.</code>， 属于any match，与上种情况类似，但是<code>\0</code> 和 <code>.</code> 是不能match的</li>
+<li><code>[a-Z]</code> 和 <code>([a-Z]|.)*</code>，属于repeat match, 也是这题的唯一难点，有两种情况，且可以用DFS暴力解决：
+
+<ul>
+<li><code>*</code> match 0 次: <code>[a-Z]</code> match <code>[a-Z]|.</code>  &amp;&amp; <code>s+1</code> 也要match <code>regex</code></li>
+<li><code>*</code> match >= 1 次: <code>s</code> match <code>regex+2</code></li>
+</ul>
+</li>
+</ul>
+
+
+<h4>曾犯错误</h4>
+
+<p>之下都是我在面试或者写题中出现过的错误：</p>
+
+<ul>
+<li>与WildCardMatching混淆，认为一个for loop可以解决（非DP）</li>
+<li>边界情况 <code>""</code> 与 <code>.*</code>的match</li>
+<li>For loop 和DFS 在此处混用，逻辑不清（紧张？？？）</li>
+<li>强行用c++ string 进DFS却又不想用index （<code>string::data() -&gt; const char*</code>）</li>
+<li>没有处理<code>\0</code> 和 <code>.</code> 的情况</li>
+</ul>
+
+
+<p>不怕笑话，试着回忆一些面试写的丑逼代码：</p>
+
+<h5>丑1:</h5>
+
+<pre><code class="c++">bool isMatch(string s, string regex) {
+  if (s.empty() &amp;&amp; regex.empty()) return false;
+  int r_i = 0;
+  for (int i = 0; i &lt; s.size(); ++i) {
+    if (s[i] == regex[r_i]) {
+      return isMatch(s.substr(i), regex.substr(r_i));
+    }
+    if (regex[r_i] == '*') { // should be regex[r_i+1] == '*'
+      return isMatch(s.substr(i+1), regex.substr(r_i-1))
+        || isMatch(s.substr(i), regex.substr(r_i+1));
+    }
+    if (regex[r_i] == '.') {
+      return isMatch(s.substr(i+1), regex.substr(r_i+1));
+    }
+    return false;
+  }
+  return false;
+}
+</code></pre>
+
+<h5>丑2：</h5>
+
+<pre><code class="c++">bool isMatch(string s, string p) {
+  return imp(s.data(), p.data());
+}
+
+bool imp(const char* c, const char* p) {
+    if (*c == '\0' &amp;&amp; *p == '\0') {
+        return true;
+    }
+    if (*p == '\0' || *c == '\0') return false; // ??? patching
+    if (*(p+1) == '*') {
+        return isMatch(c+1, p) || isMatch(c+1, p+2); // should be || isMatch(c, p+2)
+    }
+    if (*c == *p || *p == '.') {  // '\0' and '.'
+        return isMatch(c+1, p+1);
+    }
+    return false;
+}
+</code></pre>
+
+<h4>正确姿势</h4>
+
+<h5>DFS</h5>
+
+<p>算法清晰的情况下，DFS 解法基本等同于直接翻译：</p>
+
+<pre><code class="c++">bool isMatch(string s, string p) {
+  return imp(s.data(), p.data());
+}
+
+bool imp(const char* c, const char* p) {
+    // only when regex reaches the end, *c check make sense
+    if (*p == '\0') return *c == '\0'; 
+    if (*(p+1) == '*') {
+        return ((*p == *c || (*c != '\0' &amp;&amp; *p == '.')) &amp;&amp; isMatch(c+1, p)) 
+          || isMatch(c, p+2);
+    }
+    if (*c == *p || (*c != '\0' &amp;&amp; *p == '.')) {
+        return isMatch(c+1, p+1);
+    }
+    return false;
+}
+</code></pre>
+
+<h5>DP</h5>
+
+<p>DP的关键在于构建状态转移矩阵，而此处构建的方法为：令 <code>bool f[i][j]</code>为 <code>s[i-1]</code> match <code>p[j-1]</code> 的情况，然后写出 <code>f[i][j]</code> 与 <code>p[i-1]</code> <code>j[i-1]</code> 的关系，相同<strong>思路</strong>。</p>
+
+<p>其中初始化<code>f[0][j]</code>要有讲究（也就是<code>empty string</code> 与 什么样的<code>regex</code>算matching）。</p>
+
+<p>详细请看代码注释：</p>
+
+<pre><code class="c++">// Copy from Leetcode
+bool isMatch(string s, string p) {
+    /**
+     * f[i][j]: if s[0..i-1] matches p[0..j-1]
+     * if p[j - 1] != '*'
+     *      f[i][j] = f[i - 1][j - 1] &amp;&amp; s[i - 1] == p[j - 1]
+     * if p[j - 1] == '*', denote p[j - 2] with x
+     *      f[i][j] is true iff any of the following is true
+     *      1) "x*" repeats 0 time and matches empty: f[i][j - 2]
+     *      2) "x*" repeats &gt;= 1 times and matches "x*x": s[i - 1] == x &amp;&amp; f[i - 1][j]
+     * '.' matches any single character
+     */
+    int m = s.size(), n = p.size();
+    vector&lt;vector&lt;bool&gt;&gt; f(m + 1, vector&lt;bool&gt;(n + 1, false));
+
+    f[0][0] = true;
+    for (int i = 1; i &lt;= m; i++)
+        f[i][0] = false;
+    // p[0.., j - 3, j - 2, j - 1] matches empty iff p[j - 1] is '*' 
+    // and p[0..j - 3] matches empty
+    for (int j = 1; j &lt;= n; j++)
+        f[0][j] = j &gt; 1 &amp;&amp; '*' == p[j - 1] &amp;&amp; f[0][j - 2];
+
+    for (int i = 1; i &lt;= m; i++)
+        for (int j = 1; j &lt;= n; j++)
+            if (p[j - 1] != '*') {
+                f[i][j] = f[i - 1][j - 1] &amp;&amp; (s[i - 1] == p[j - 1] 
+                                              || '.' == p[j - 1]);
+            }
+            else
+                // p[0] cannot be '*' so no need to check "j &gt; 1" here
+                f[i][j] = f[i][j - 2] || (s[i - 1] == p[j - 2] 
+                                          || '.' == p[j - 2]) &amp;&amp; f[i - 1][j];
+
+    return f[m][n];
+}
+</code></pre>
+
+<h4>拓展</h4>
+
+<ul>
+<li>尝试用NFA解决真正的<code>regex</code>问题，尝试自己土制了一个小 <a href="https://github.com/Noeyfan/noey_algos/blob/master/noey_regex.h">regex lib</a>.</li>
+<li>还有Tim的 <a href="https://gist.github.com/Noeyfan/1c60fa6555f6cdc50fd2f55d78aed8a9">compile time regex (no parsing)</a></li>
+</ul>
+
+
+<h4>相似题目</h4>
+
+<p><code>// placeholder，将遇到的相似题目加入此处</code></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[面试总结]]></title>
+    <link href="http://fyou.me/blog/2015/03/01/epic/"/>
+    <updated>2015-03-01T12:41:09-08:00</updated>
+    <id>http://fyou.me/blog/2015/03/01/epic</id>
+    <content type="html"><![CDATA[<h3>Epic</h3>
+
+<p>说来这也算是这辈子第一次tech interview, 总结一下把。总体面试还是分为两块,技术性问题和非技术性问题。</p>
+
+<h3>Non-Tech</h3>
+
+<p>非技术性问题问了目前为止解决的最难的bug是什么, 你最喜欢的游戏是什么，给你一个机会improve，你会怎么improve。</p>
+
+<h3>Tech</h3>
+
+<p>问了Array, List, Tree, Hashtable 各自的优劣,我萌萌的完全不知道该怎么答。回头整理了下发在<a href="https://docs.google.com/spreadsheets/d/1RdcEWxH6dcAfvAEpaDvLp4lW7AwC2C0RNDvXfqlq5yI/edit?usp=sharing">这里</a>,基本从两个角度作答:1.复杂度 2.overhead</p>
+
+<h3>C++</h3>
+
+<ul>
+<li>什么是Virtual Destructor: 不用作<a href="https://github.com/Noeyfan/CodingPractice/blob/master/virtual/vf_destructor.cc">owned base class pointer</a>的时候不用.</li>
+</ul>
+
+
+<pre><code class="C">A* p = new B();
+delete p;
+</code></pre>
+
+<ul>
+<li>virtual function 是怎么样实现的(一般实现virtual function的时候会把所有的函数指针放到一个<a href="http://en.wikipedia.org/wiki/Virtual_method_table">表(vtable)里</a>,</li>
+</ul>
+
+
+<pre><code class="">一个类有10个virtual function你初始化一个子类对象这个子类对象一般多大？
+假设基类size为A，子类size为B假设基类所有成员size和为A，
+子类自己所有成员size和为B创建一个子类对象，占多大空间？ 
+
+答案:A+B+sizeof(pointer_type), 另外alignment可能让他更大)
+</code></pre>
+
+<ul>
+<li>几何问题: 做一个2D game, 不用ray cast如何知道A是否看的见B, 很简单, Va*(Pb-Pa) > 0 说明能看得见, 反之看不见。</li>
+</ul>
+
+
+<h3>More</h3>
+
+<p>还是要学好C/C++,<a href="http://www.slideshare.net/olvemaudal/deep-c">deep-C</a></p>
+]]></content>
+  </entry>
+  
+</feed>
