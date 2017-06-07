@@ -3,7 +3,7 @@ layout: post
 title: "面试总结"
 date: 2015-03-01 15:41:09 -0500
 comments: true
-categories: [random]
+categories: [interview]
 ---
 
 ###Epic

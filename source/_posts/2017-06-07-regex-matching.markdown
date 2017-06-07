@@ -1,3 +1,13 @@
+---
+layout: page
+title: "Regex Matching"
+categories: interview
+date: 2017-06-07 1:30
+comments: true
+sharing: true
+footer: true
+---
+
 准备督促自己刷刷题／打打codejam，保持手感，记录一些难倒过自己的题目，从错误开始到正确思路，（也许）包括一些深入的拓展。
 
 #### 题目
