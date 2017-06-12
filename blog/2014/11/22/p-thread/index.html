@@ -251,6 +251,207 @@
 </span><span class='line'><span class="c1">//结论:signal是一个函数指针数组，函数指针的函数类型为：接受int，返回另一个函数指针，后者的函数类型为“接受char，返回int指针”</span>
 </span></code></pre></td></tr></table></div></figure>
 
+
+<p>8.如何使用<code>function pointer</code> 实现dynamic dispatch?</p>
+
+<p>原理非常简单就是在初始化时候将内部的function pointer，指向implementation的真实function从而达到目的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">funA_imp</span><span class="p">()</span> <span class="p">{</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;world&quot;</span><span class="p">);</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">funBase_imp</span><span class="p">()</span> <span class="p">{</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">);</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">Base</span> <span class="p">{</span> <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">fun</span><span class="p">)();</span> <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">A</span> <span class="p">{</span> <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">fun</span><span class="p">)();</span> <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">Base</span> <span class="n">b</span><span class="p">;</span>
+</span><span class='line'>    <span class="c1">// dynamic dispatch</span>
+</span><span class='line'>    <span class="c1">// struct A a;</span>
+</span><span class='line'>    <span class="c1">// a.fun = &amp;funA_imp;</span>
+</span><span class='line'>    <span class="c1">// b.fun = a.fun;</span>
+</span><span class='line'>    <span class="n">b</span><span class="p">.</span><span class="n">fun</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">funBase_imp</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">b</span><span class="p">.</span><span class="n">fun</span><span class="p">();</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>virtual function</code> 也是同理</p>
+
+<p><code>Base class</code> maintain 一个<code>__vptr*</code> 指向真实的<code>vtable (array of functions)</code> implementation，而所有的<code>derived class</code> 包括 <code>base</code> 自己都有一个 <code>vtable</code> 的implementation.</p>
+
+<p>下面 class A in c++：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">A</span> <span class="p">{</span>
+</span><span class='line'><span class="k">protected</span><span class="o">:</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">a</span><span class="p">;</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="n">A</span><span class="p">()</span> <span class="p">{</span><span class="n">a</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;}</span>
+</span><span class='line'>    <span class="k">virtual</span> <span class="kt">void</span> <span class="n">update</span><span class="p">()</span> <span class="p">{</span><span class="n">a</span><span class="o">++</span><span class="p">;}</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">access</span><span class="p">()</span> <span class="p">{</span><span class="n">update</span><span class="p">();</span> <span class="k">return</span> <span class="n">a</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">B</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">public</span><span class="o">:</span>
+</span><span class='line'>      <span class="kt">void</span> <span class="n">update</span><span class="p">()</span> <span class="p">{</span><span class="n">a</span><span class="o">--</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以用c这么实现：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">A</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">A</span><span class="p">)(</span><span class="k">struct</span> <span class="n">A</span><span class="o">*</span><span class="p">);</span>
+</span><span class='line'>    <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">update</span><span class="p">)(</span><span class="k">struct</span> <span class="n">A</span><span class="o">*</span><span class="p">);</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">access</span><span class="p">)(</span><span class="k">struct</span> <span class="n">A</span><span class="o">*</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span> <span class="n">A_functable</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="n">A</span><span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">a</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">A_functable</span> <span class="o">*</span><span class="n">vmt</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span> <span class="n">A</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">A_A</span><span class="p">(</span><span class="n">A</span> <span class="o">*</span><span class="n">this</span><span class="p">);</span>
+</span><span class='line'><span class="kt">void</span> <span class="nf">A_update</span><span class="p">(</span><span class="n">A</span><span class="o">*</span> <span class="n">this</span><span class="p">);</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">A_access</span><span class="p">(</span><span class="n">A</span><span class="o">*</span> <span class="n">this</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">A_functable</span> <span class="n">A_vmt</span> <span class="o">=</span> <span class="p">{</span><span class="n">A_A</span><span class="p">,</span> <span class="n">A_update</span><span class="p">,</span> <span class="n">A_access</span><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">A_A</span><span class="p">(</span><span class="n">A</span> <span class="o">*</span><span class="n">this</span><span class="p">)</span> <span class="p">{</span><span class="n">this</span><span class="o">-&gt;</span><span class="n">vmt</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">A_vmt</span><span class="p">;</span> <span class="n">this</span><span class="o">-&gt;</span><span class="n">a</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;}</span>
+</span><span class='line'><span class="kt">void</span> <span class="nf">A_update</span><span class="p">(</span><span class="n">A</span><span class="o">*</span> <span class="n">this</span><span class="p">)</span> <span class="p">{</span><span class="n">this</span><span class="o">-&gt;</span><span class="n">a</span><span class="o">++</span><span class="p">;}</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">A_access</span><span class="p">(</span><span class="n">A</span><span class="o">*</span> <span class="n">this</span><span class="p">)</span> <span class="p">{</span><span class="n">this</span><span class="o">-&gt;</span><span class="n">vmt</span><span class="o">-&gt;</span><span class="n">update</span><span class="p">(</span><span class="n">this</span><span class="p">);</span> <span class="k">return</span> <span class="n">this</span><span class="o">-&gt;</span><span class="n">a</span><span class="p">;}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/*</span>
+</span><span class='line'><span class="cm">class B: public A {</span>
+</span><span class='line'><span class="cm">public:</span>
+</span><span class='line'><span class="cm">    void update() {a--;}</span>
+</span><span class='line'><span class="cm">};</span>
+</span><span class='line'><span class="cm">*/</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">B</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">B</span><span class="p">)(</span><span class="k">struct</span> <span class="n">B</span><span class="o">*</span><span class="p">);</span>
+</span><span class='line'>    <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">update</span><span class="p">)(</span><span class="k">struct</span> <span class="n">B</span><span class="o">*</span><span class="p">);</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">access</span><span class="p">)(</span><span class="k">struct</span> <span class="n">A</span><span class="o">*</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span> <span class="n">B_functable</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="n">B</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">A</span> <span class="n">inherited</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span> <span class="n">B</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">B_B</span><span class="p">(</span><span class="n">B</span> <span class="o">*</span><span class="n">this</span><span class="p">);</span>
+</span><span class='line'><span class="kt">void</span> <span class="nf">B_update</span><span class="p">(</span><span class="n">B</span><span class="o">*</span> <span class="n">this</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">B_functable</span> <span class="n">B_vmt</span> <span class="o">=</span> <span class="p">{</span><span class="n">B_B</span><span class="p">,</span> <span class="n">B_update</span><span class="p">,</span> <span class="n">A_access</span><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">B_B</span><span class="p">(</span><span class="n">B</span> <span class="o">*</span><span class="n">this</span><span class="p">)</span> <span class="p">{</span><span class="n">A_A</span><span class="p">(</span><span class="n">this</span><span class="p">);</span> <span class="n">this</span><span class="o">-&gt;</span><span class="n">inherited</span><span class="p">.</span><span class="n">vmt</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">B_vmt</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="kt">void</span> <span class="nf">B_update</span><span class="p">(</span><span class="n">B</span><span class="o">*</span> <span class="n">this</span><span class="p">)</span> <span class="p">{</span><span class="n">this</span><span class="o">-&gt;</span><span class="n">inherited</span><span class="p">.</span><span class="n">a</span><span class="o">--</span><span class="p">;}</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">B_access</span><span class="p">(</span><span class="n">B</span><span class="o">*</span> <span class="n">this</span><span class="p">)</span> <span class="p">{</span><span class="n">this</span><span class="o">-&gt;</span><span class="n">inherited</span><span class="p">.</span><span class="n">vmt</span><span class="o">-&gt;</span><span class="n">update</span><span class="p">(</span><span class="n">this</span><span class="p">);</span> <span class="k">return</span> <span class="n">this</span><span class="o">-&gt;</span><span class="n">inherited</span><span class="p">.</span><span class="n">a</span><span class="p">;}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">A</span> <span class="n">x</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">B</span> <span class="n">y</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">A_A</span><span class="p">(</span><span class="o">&amp;</span><span class="n">x</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">B_B</span><span class="p">(</span><span class="o">&amp;</span><span class="n">y</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">.</span><span class="n">vmt</span><span class="o">-&gt;</span><span class="n">access</span><span class="p">(</span><span class="o">&amp;</span><span class="n">x</span><span class="p">));</span>
+</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">y</span><span class="p">.</span><span class="n">inherited</span><span class="p">.</span><span class="n">vmt</span><span class="o">-&gt;</span><span class="n">access</span><span class="p">(</span><span class="o">&amp;</span><span class="n">y</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
 </div>
 
 </article>

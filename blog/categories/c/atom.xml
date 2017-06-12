@@ -4,7 +4,7 @@
   <title><![CDATA[Category: c | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/c/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2017-06-07T01:34:59-07:00</updated>
+  <updated>2017-06-11T17:01:51-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -328,6 +328,113 @@ int (*signal[4])(int)(char)[6];
 //现在signal是啥呢，肯定是个数组。什么数组呢？上一条那玩意的数组
 //结论:signal是一个函数指针数组，函数指针的函数类型为：接受int，返回另一个函数指针，后者的函数类型为“接受char，返回int指针”
 </code></p>
+
+<p>8.如何使用<code>function pointer</code> 实现dynamic dispatch?</p>
+
+<p>原理非常简单就是在初始化时候将内部的function pointer，指向implementation的真实function从而达到目的。</p>
+
+<pre><code class="c">void funA_imp() { printf("world"); }
+
+void funBase_imp() { printf("hello"); }
+
+struct Base { void (*fun)(); };
+
+struct A { void (*fun)(); };
+
+int main() {
+    struct Base b;
+    // dynamic dispatch
+    // struct A a;
+    // a.fun = &amp;funA_imp;
+    // b.fun = a.fun;
+    b.fun = &amp;funBase_imp;
+    b.fun();
+}
+</code></pre>
+
+<p><code>virtual function</code> 也是同理</p>
+
+<p><code>Base class</code> maintain 一个<code>__vptr*</code> 指向真实的<code>vtable (array of functions)</code> implementation，而所有的<code>derived class</code> 包括 <code>base</code> 自己都有一个 <code>vtable</code> 的implementation.</p>
+
+<p>下面 class A in c++：</p>
+
+<pre><code class="c++">class A {
+protected:
+    int a;
+public:
+    A() {a = 10;}
+    virtual void update() {a++;}
+    int access() {update(); return a;}
+};
+
+class B {
+  public:
+    void update() {a--;}
+};
+</code></pre>
+
+<p>可以用c这么实现：</p>
+
+<pre><code class="c">struct A;
+
+typedef struct {
+    void (*A)(struct A*);
+    void (*update)(struct A*);
+    int (*access)(struct A*);
+} A_functable;
+
+typedef struct A{
+    int a;
+    A_functable *vmt;
+} A;
+
+void A_A(A *this);
+void A_update(A* this);
+int A_access(A* this);
+
+A_functable A_vmt = {A_A, A_update, A_access};
+
+void A_A(A *this) {this-&gt;vmt = &amp;A_vmt; this-&gt;a = 10;}
+void A_update(A* this) {this-&gt;a++;}
+int A_access(A* this) {this-&gt;vmt-&gt;update(this); return this-&gt;a;}
+
+/*
+class B: public A {
+public:
+    void update() {a--;}
+};
+*/
+
+struct B;
+
+typedef struct {
+    void (*B)(struct B*);
+    void (*update)(struct B*);
+    int (*access)(struct A*);
+} B_functable;
+
+typedef struct B {
+    A inherited;
+} B;
+
+void B_B(B *this);
+void B_update(B* this);
+
+B_functable B_vmt = {B_B, B_update, A_access};
+
+void B_B(B *this) {A_A(this); this-&gt;inherited.vmt = &amp;B_vmt; }
+void B_update(B* this) {this-&gt;inherited.a--;}
+int B_access(B* this) {this-&gt;inherited.vmt-&gt;update(this); return this-&gt;inherited.a;}
+
+int main() {
+    A x;
+    B y;
+    A_A(&amp;x);
+    B_B(&amp;y);
+    printf("%d\n", x.vmt-&gt;access(&amp;x));
+    printf("%d\n", y.inherited.vmt-&gt;access(&amp;y));
+}
+</code></pre>
 ]]></content>
   </entry>
   
