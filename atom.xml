@@ -4,7 +4,7 @@
   <title><![CDATA[NOEY]]></title>
   <link href="http://fyou.me/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2017-06-11T17:01:51-07:00</updated>
+  <updated>2017-07-15T15:03:45-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -38,8 +38,8 @@
 <li><code>[a-Z]</code> 和 <code>([a-Z]|.)*</code>，属于repeat match, 也是这题的唯一难点，有两种情况，且可以用DFS暴力解决：
 
 <ul>
-<li><code>*</code> match 0 次: <code>[a-Z]</code> match <code>[a-Z]|.</code>  &amp;&amp; <code>s+1</code> 也要match <code>regex</code></li>
-<li><code>*</code> match >= 1 次: <code>s</code> match <code>regex+2</code></li>
+<li><code>*</code> match >=1 次: <code>[a-Z]</code> match <code>[a-Z]|.</code>  &amp;&amp; <code>s+1</code> 也要match <code>regex</code></li>
+<li><code>*</code> match 0 次: <code>s</code> match <code>regex+2</code></li>
 </ul>
 </li>
 </ul>
@@ -162,6 +162,7 @@
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
+<span class='line-number'>17</span>
 </pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="kt">bool</span> <span class="nf">isMatch</span><span class="p">(</span><span class="n">string</span> <span class="n">s</span><span class="p">,</span> <span class="n">string</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
 </span><span class='line'>  <span class="k">return</span> <span class="n">imp</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">p</span><span class="p">.</span><span class="n">data</span><span class="p">());</span>
 </span><span class='line'><span class="p">}</span>
@@ -170,11 +171,12 @@
 </span><span class='line'>      <span class="c1">// only when regex reaches the end, *c check make sense</span>
 </span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span><span class="p">)</span> <span class="k">return</span> <span class="o">*</span><span class="n">c</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
 </span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">p</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="sc">&#39;*&#39;</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="p">((</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="o">*</span><span class="n">c</span> <span class="o">||</span> <span class="p">(</span><span class="o">*</span><span class="n">c</span> <span class="o">!=</span> <span class="sc">&#39;\0&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">&#39;.&#39;</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="n">isMatch</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span>
-</span><span class='line'>          <span class="o">||</span> <span class="n">isMatch</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">p</span><span class="o">+</span><span class="mi">2</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">((</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="o">*</span><span class="n">c</span> <span class="o">||</span> <span class="p">(</span><span class="o">*</span><span class="n">c</span> <span class="o">!=</span> <span class="sc">&#39;\0&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">&#39;.&#39;</span><span class="p">))</span>
+</span><span class='line'>                <span class="o">&amp;&amp;</span> <span class="n">imp</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span>
+</span><span class='line'>          <span class="o">||</span> <span class="n">imp</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">p</span><span class="o">+</span><span class="mi">2</span><span class="p">);</span>
 </span><span class='line'>    <span class="p">}</span>
 </span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">c</span> <span class="o">==</span> <span class="o">*</span><span class="n">p</span> <span class="o">||</span> <span class="p">(</span><span class="o">*</span><span class="n">c</span> <span class="o">!=</span> <span class="sc">&#39;\0&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">&#39;.&#39;</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">isMatch</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">imp</span><span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
 </span><span class='line'>    <span class="p">}</span>
 </span><span class='line'>    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
 </span><span class='line'><span class="p">}</span>

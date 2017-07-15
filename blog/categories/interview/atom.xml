@@ -4,7 +4,7 @@
   <title><![CDATA[Category: interview | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/interview/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2017-06-11T17:01:51-07:00</updated>
+  <updated>2017-07-15T15:03:45-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -37,8 +37,8 @@
 <li><code>[a-Z]</code> 和 <code>([a-Z]|.)*</code>，属于repeat match, 也是这题的唯一难点，有两种情况，且可以用DFS暴力解决：
 
 <ul>
-<li><code>*</code> match 0 次: <code>[a-Z]</code> match <code>[a-Z]|.</code>  &amp;&amp; <code>s+1</code> 也要match <code>regex</code></li>
-<li><code>*</code> match >= 1 次: <code>s</code> match <code>regex+2</code></li>
+<li><code>*</code> match >=1 次: <code>[a-Z]</code> match <code>[a-Z]|.</code>  &amp;&amp; <code>s+1</code> 也要match <code>regex</code></li>
+<li><code>*</code> match 0 次: <code>s</code> match <code>regex+2</code></li>
 </ul>
 </li>
 </ul>
@@ -116,11 +116,12 @@ bool imp(const char* c, const char* p) {
     // only when regex reaches the end, *c check make sense
     if (*p == '\0') return *c == '\0'; 
     if (*(p+1) == '*') {
-        return ((*p == *c || (*c != '\0' &amp;&amp; *p == '.')) &amp;&amp; isMatch(c+1, p)) 
-          || isMatch(c, p+2);
+        return ((*p == *c || (*c != '\0' &amp;&amp; *p == '.'))
+                &amp;&amp; imp(c+1, p)) 
+          || imp(c, p+2);
     }
     if (*c == *p || (*c != '\0' &amp;&amp; *p == '.')) {
-        return isMatch(c+1, p+1);
+        return imp(c+1, p+1);
     }
     return false;
 }
