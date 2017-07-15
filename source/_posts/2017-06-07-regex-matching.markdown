@@ -25,8 +25,8 @@ bool isMatch(string s, string regex);
 * `[a-Z]` 和 `[a-Z]`，属于exact match，只需要关注当前位置
 * `[a-Z]` 和 `.`， 属于any match，与上种情况类似，但是`\0` 和 `.` 是不能match的
 * `[a-Z]` 和 `([a-Z]|.)*`，属于repeat match, 也是这题的唯一难点，有两种情况，且可以用DFS暴力解决：
-  * `* ` match 0 次: `[a-Z]` match `[a-Z]|.`  && `s+1` 也要match `regex`
-  * `*` match >= 1 次: `s` match `regex+2`
+  * `* ` match >=1 次: `[a-Z]` match `[a-Z]|.`  && `s+1` 也要match `regex`
+  * `*` match 0 次: `s` match `regex+2`
 
 #### 曾犯错误
 
@@ -100,11 +100,12 @@ bool imp(const char* c, const char* p) {
   	// only when regex reaches the end, *c check make sense
     if (*p == '\0') return *c == '\0'; 
     if (*(p+1) == '*') {
-        return ((*p == *c || (*c != '\0' && *p == '.')) && isMatch(c+1, p)) 
-          || isMatch(c, p+2);
+        return ((*p == *c || (*c != '\0' && *p == '.'))
+                && imp(c+1, p)) 
+          || imp(c, p+2);
     }
     if (*c == *p || (*c != '\0' && *p == '.')) {
-        return isMatch(c+1, p+1);
+        return imp(c+1, p+1);
     }
     return false;
 }
