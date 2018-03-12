@@ -1,0 +1,281 @@
+
+<!DOCTYPE HTML>
+<html lang="en-GB">
+<head>
+	<meta charset="utf-8">
+	<title>736. Parse Lisp Expression  | NOEY</title>
+
+	<meta name="author" content="Fan You">
+
+<meta name="description" content="https://leetcode.com/problems/parse-lisp-expression/description/ (很喜欢leetcode里的这个解法，故此记录一下，不太喜欢的是使用了deque存symbol table，如果直接用map作为递归参数会更好。) 解法用了top- &hellip;"> <meta name="keywords" content="">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="NOEY" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">NOEY</a></h1>
+<span class="tagline"></span>
+
+
+</header>
+
+	<div id="content" class="inner"><article class="post">
+	<header>
+		<h2 class="title">736. Parse Lisp Expression</h2>
+		<div class="meta date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-03-11T21:46:05-07:00" pubdate data-updated="true"></time></div>
+	</header>
+	<div class="entry-content"><p><a href="https://leetcode.com/problems/parse-lisp-expression/description/">https://leetcode.com/problems/parse-lisp-expression/description/</a></p>
+
+<p>(很喜欢leetcode里的这个解法，故此记录一下，不太喜欢的是使用了deque存symbol table，如果直接用map作为递归参数会更好。)</p>
+
+<p>解法用了top-down parsing，用getToken和++pos来consume token，优先处理add/mult的简单情况，然后处理let，逻辑清晰，值得学些。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">evaluate</span><span class="p">(</span><span class="n">string</span> <span class="n">expression</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">scopes_</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">eval</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">pos</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="k">private</span><span class="o">:</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">eval</span><span class="p">(</span><span class="k">const</span> <span class="n">string</span><span class="o">&amp;</span> <span class="n">s</span><span class="p">,</span> <span class="kt">int</span><span class="o">&amp;</span> <span class="n">pos</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">scopes_</span><span class="p">.</span><span class="n">push_front</span><span class="p">(</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">string</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span><span class="p">());</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// The return value of current expr</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">==</span> <span class="sc">&#39;(&#39;</span><span class="p">)</span> <span class="o">++</span><span class="n">pos</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// command, variable or number</span>
+</span><span class='line'>        <span class="k">const</span> <span class="n">string</span> <span class="n">token</span> <span class="o">=</span> <span class="n">getToken</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pos</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">token</span> <span class="o">==</span> <span class="s">&quot;add&quot;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">v1</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="o">++</span><span class="n">pos</span><span class="p">);</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="o">++</span><span class="n">pos</span><span class="p">);</span>
+</span><span class='line'>            <span class="n">value</span> <span class="o">=</span> <span class="n">v1</span> <span class="o">+</span> <span class="n">v2</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">token</span> <span class="o">==</span> <span class="s">&quot;mult&quot;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">v1</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="o">++</span><span class="n">pos</span><span class="p">);</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="o">++</span><span class="n">pos</span><span class="p">);</span>
+</span><span class='line'>            <span class="n">value</span> <span class="o">=</span> <span class="n">v1</span> <span class="o">*</span> <span class="n">v2</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">token</span> <span class="o">==</span> <span class="s">&quot;let&quot;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">string</span> <span class="n">var</span><span class="p">;</span>
+</span><span class='line'>            <span class="c1">// expecting &quot; var1 exp1 var2 exp2 ... last_expr)&quot;</span>
+</span><span class='line'>            <span class="k">while</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">!=</span> <span class="sc">&#39;)&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                <span class="o">++</span><span class="n">pos</span><span class="p">;</span>
+</span><span class='line'>                <span class="c1">// Must be last_expr</span>
+</span><span class='line'>                <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">==</span> <span class="sc">&#39;(&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                    <span class="n">value</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="o">++</span><span class="n">pos</span><span class="p">);</span>
+</span><span class='line'>                    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>                <span class="c1">// Get a token, could be &quot;x&quot; or &quot;-12&quot; for last_expr</span>
+</span><span class='line'>                <span class="n">var</span> <span class="o">=</span> <span class="n">getToken</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pos</span><span class="p">);</span>
+</span><span class='line'>                <span class="c1">// End of let, var is last_expr</span>
+</span><span class='line'>                <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">==</span> <span class="sc">&#39;)&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                    <span class="k">if</span> <span class="p">(</span><span class="n">isalpha</span><span class="p">(</span><span class="n">var</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+</span><span class='line'>                        <span class="n">value</span> <span class="o">=</span> <span class="n">getValue</span><span class="p">(</span><span class="n">var</span><span class="p">);</span>
+</span><span class='line'>                    <span class="k">else</span>
+</span><span class='line'>                        <span class="n">value</span> <span class="o">=</span> <span class="n">stoi</span><span class="p">(</span><span class="n">var</span><span class="p">);</span>
+</span><span class='line'>                    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>                <span class="c1">// x -12 -&gt; set x to -12 and store in the current scope and take it as the current return value</span>
+</span><span class='line'>                <span class="n">value</span> <span class="o">=</span> <span class="n">scopes_</span><span class="p">.</span><span class="n">front</span><span class="p">()[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="o">++</span><span class="n">pos</span><span class="p">);</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">isalpha</span><span class="p">(</span><span class="n">token</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">value</span> <span class="o">=</span> <span class="n">getValue</span><span class="p">(</span><span class="n">token</span><span class="p">);</span> <span class="c1">// symbol</span>
+</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">value</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">stoi</span><span class="p">(</span><span class="n">token</span><span class="p">);</span> <span class="c1">// number</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">==</span> <span class="sc">&#39;)&#39;</span><span class="p">)</span> <span class="o">++</span><span class="n">pos</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">scopes_</span><span class="p">.</span><span class="n">pop_front</span><span class="p">();</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">value</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">getValue</span><span class="p">(</span><span class="k">const</span> <span class="n">string</span><span class="o">&amp;</span> <span class="n">symbol</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span><span class="o">&amp;</span> <span class="nl">scope</span> <span class="p">:</span> <span class="n">scopes_</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">scope</span><span class="p">.</span><span class="n">count</span><span class="p">(</span><span class="n">symbol</span><span class="p">))</span> <span class="k">return</span> <span class="n">scope</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">symbol</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Get a token from current pos.</span>
+</span><span class='line'>    <span class="c1">// &quot;let x&quot; -&gt; &quot;let&quot;</span>
+</span><span class='line'>    <span class="c1">// &quot;-12 (add x y)&quot; -&gt; &quot;-12&quot;</span>
+</span><span class='line'>    <span class="n">string</span> <span class="n">getToken</span><span class="p">(</span><span class="k">const</span> <span class="n">string</span><span class="o">&amp;</span> <span class="n">s</span><span class="p">,</span> <span class="kt">int</span><span class="o">&amp;</span> <span class="n">pos</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">string</span> <span class="n">token</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">while</span> <span class="p">(</span><span class="n">pos</span> <span class="o">&lt;</span> <span class="n">s</span><span class="p">.</span><span class="n">length</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">==</span> <span class="sc">&#39;)&#39;</span> <span class="o">||</span> <span class="n">s</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">==</span> <span class="sc">&#39; &#39;</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>            <span class="n">token</span> <span class="o">+=</span> <span class="n">s</span><span class="p">[</span><span class="n">pos</span><span class="o">++</span><span class="p">];</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">token</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">deque</span><span class="o">&lt;</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">string</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;&gt;</span> <span class="n">scopes_</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+</article>
+
+	
+	<div class="share">
+	</div>
+
+
+
+
+<section id="comment">
+    <!--h2 class="title">Comments</h2-->
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+</div>
+	<footer id="footer" class="inner"><footer>
+<div class="about">
+<hr>
+<a href="https://twitter.com/youbuer"><img
+src="https://s.gravatar.com/avatar/34fe2d98d60e35a82cf6d649e1f93a91?s=640"></img></a>
+<h4>Fan You</h4>
+<p><a href="https://twitter.com/youbuer">@fanyou</a>. A programmer in Carnegie
+Mellon University. See My
+<a
+href="https://github.com/Noeyfan">Github</a>, <a href="/portfolio">Portfolio</a>, <a href="/about">Resumé</a>
+and <a href="/blog/">Blog</a>.
+Contact me via <a href="mailto:youfan.noey@gamil.com">e-mail</a>.</p>
+</hr>
+</div>
+
+<div class="copy">
+&copy; 2018
+<a href="http://fyou.me/"></a>
+</footer>
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/hyphenator.js"></script>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'buertec';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://fyou.me/blog/2018/03/11/736-parse-lisp-expression/';
+        var disqus_url = 'http://fyou.me/blog/2018/03/11/736-parse-lisp-expression/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+</body>
+<script>
+  $(document).ready(function() {
+  // Make images center
+  $('p:has(img)').css('text-align', 'center');
+  });
+</script>
+</html>
