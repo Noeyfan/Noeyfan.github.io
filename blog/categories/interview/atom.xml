@@ -4,7 +4,7 @@
   <title><![CDATA[Category: interview | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/interview/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2018-03-11T22:04:33-07:00</updated>
+  <updated>2018-03-21T22:26:15-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -12,6 +12,123 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[919. Meeting Rooms II]]></title>
+    <link href="http://fyou.me/blog/2018/03/21/919-meeting-rooms-ii/"/>
+    <updated>2018-03-21T22:24:39-07:00</updated>
+    <id>http://fyou.me/blog/2018/03/21/919-meeting-rooms-ii</id>
+    <content type="html"><![CDATA[<p>考察Interval intersection, 一次遍历内解决问题和多维数组一直是我的弱项。</p>
+
+<h4>920. <a href="http://www.lintcode.com/en/problem/meeting-rooms/">Meeting Rooms</a></h4>
+
+<p>这道题给一个Interval list只考察Interval有无交集，所以从第二个element开始，只要test自己的start是否小于前一个Interval的end。(前提：List以Interval start sorted)</p>
+
+<pre><code class="c++">class Solution {
+public:
+    bool canAttendMeetings(vector&lt;Interval&gt; &amp;intervals) {
+        if (intervals.size() &lt;= 1) return true;
+        sort(
+            intervals.begin(),
+            intervals.end(),
+            [](const Interval &amp;a, const Interval &amp;b)
+            {
+                return a.start &lt; b.start;
+            });
+        for (int i = 1; i &lt; intervals.size(); ++i)
+        {
+            if (intervals[i].start &lt; intervals[i-1].end) return false;
+        }
+        return true;
+    }
+};
+</code></pre>
+
+<h4>919. <a href="http://www.lintcode.com/en/problem/meeting-rooms-ii/">Meeting Rooms II</a></h4>
+
+<p>这道题唯一的区别是要算出在同一时间点，有多少同时进行的meeting，得出需要多少个不同的meeting room。</p>
+
+<p>我的初始想法是将每一个interval的时间点都存入hashmap，然后遍历一遍map，算出最大值。这个解法works，但是耗费了很多空间，大部分的时间点存在hashmap里都毫无意义，唯有start和end才是我们关注的，所以改进的解法是将start和end同时存进一个vector并mark上每个点是start还是end，然后sort这个vector，最后遍历一遍vector，start的点counter++，end的点counter&#8211;，同时track max value。</p>
+
+<pre><code class="c++">class Solution {
+public:
+    bool START = true;
+    bool END = false;
+
+    int minMeetingRooms(vector&lt;Interval&gt; &amp;intervals) {
+        vector&lt;pair&lt;int, bool&gt;&gt; vec;
+        for (const auto&amp; itv : intervals)
+        {
+            vec.push_back(make_pair(itv.start, START));
+            vec.push_back(make_pair(itv.end, END));
+        }
+
+        std::sort(vec.begin(), vec.end(),
+        [](const auto&amp; l, const auto&amp; r) {
+            return l.first &lt; r.first;
+        });
+
+        int rooms = 0, current = 0;
+        for (const auto&amp; it : vec)
+        {
+            if (it.second)
+            {
+                current++;
+            }
+            else
+            {
+                current--;
+            }
+            rooms = std::max(rooms, current);
+        }
+
+        return rooms;
+    }
+};
+</code></pre>
+
+<p>同时在网上看到了两个不错的解法。</p>
+
+<h5>解法一：</h5>
+
+<p>还是使用hashmap，但是只存start和end点的count，最后遍历map，然后sum所有start和end，并且track max value，最后max value就是结果。</p>
+
+<pre><code class="c++">class Solution {
+public:
+    int minMeetingRooms(vector&lt;Interval&gt;&amp; intervals) {
+        map&lt;int, int&gt; m;
+        for (auto a : intervals) {
+            ++m[a.start];
+            --m[a.end];
+        }
+        int rooms = 0, res = 0;
+        for (auto it : m) {
+            res = max(res, rooms += it.second);
+        }
+        return res;
+    }
+};
+</code></pre>
+
+<h5>解法二：</h5>
+
+<p>使用最小堆去track离当前最近的会议结束的时间(last.end)，如果last.end &lt;= cur.start，就表示上一个会议已经结束，可以将其从heap里pop出去，这样我们动态的maintain了一个heap，heap的size就表示当前的会议一共要多少间会议室。</p>
+
+<pre><code class="c++">class Solution {
+public:
+    int minMeetingRooms(vector&lt;Interval&gt;&amp; intervals) {
+        sort(intervals.begin(), intervals.end(), [](const Interval &amp;a, const Interval &amp;b){return a.start &lt; b.start;});
+        priority_queue&lt;int, vector&lt;int&gt;, greater&lt;int&gt;&gt; q;
+        for (auto a : intervals) {
+            if (!q.empty() &amp;&amp; q.top() &lt;= a.start) q.pop();
+            q.push(a.end);
+        }
+        return q.size();
+    }
+};
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[736. Parse Lisp Expression]]></title>

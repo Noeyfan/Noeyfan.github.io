@@ -4,13 +4,214 @@
   <title><![CDATA[NOEY]]></title>
   <link href="http://fyou.me/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2018-03-11T22:04:33-07:00</updated>
+  <updated>2018-03-21T22:26:15-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
     
   </author>
 
+  
+  <entry>
+    <title type="html"><![CDATA[919. Meeting Rooms II]]></title>
+    <link href="http://fyou.me/blog/2018/03/21/919-meeting-rooms-ii/"/>
+    <updated>2018-03-21T22:24:39-07:00</updated>
+    <id>http://fyou.me/blog/2018/03/21/919-meeting-rooms-ii</id>
+    <content type="html"><![CDATA[<p>考察Interval intersection, 一次遍历内解决问题和多维数组一直是我的弱项。</p>
+
+<h4>920. <a href="http://www.lintcode.com/en/problem/meeting-rooms/">Meeting Rooms</a></h4>
+
+<p>这道题给一个Interval list只考察Interval有无交集，所以从第二个element开始，只要test自己的start是否小于前一个Interval的end。(前提：List以Interval start sorted)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="n">canAttendMeetings</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Interval</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">intervals</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">intervals</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">sort</span><span class="p">(</span>
+</span><span class='line'>            <span class="n">intervals</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span>
+</span><span class='line'>            <span class="n">intervals</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span>
+</span><span class='line'>            <span class="p">[](</span><span class="k">const</span> <span class="n">Interval</span> <span class="o">&amp;</span><span class="n">a</span><span class="p">,</span> <span class="k">const</span> <span class="n">Interval</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">)</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="k">return</span> <span class="n">a</span><span class="p">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">.</span><span class="n">start</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">});</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">intervals</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">intervals</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">intervals</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">].</span><span class="n">end</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>919. <a href="http://www.lintcode.com/en/problem/meeting-rooms-ii/">Meeting Rooms II</a></h4>
+
+<p>这道题唯一的区别是要算出在同一时间点，有多少同时进行的meeting，得出需要多少个不同的meeting room。</p>
+
+<p>我的初始想法是将每一个interval的时间点都存入hashmap，然后遍历一遍map，算出最大值。这个解法works，但是耗费了很多空间，大部分的时间点存在hashmap里都毫无意义，唯有start和end才是我们关注的，所以改进的解法是将start和end同时存进一个vector并mark上每个点是start还是end，然后sort这个vector，最后遍历一遍vector，start的点counter++，end的点counter&#8211;，同时track max value。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="n">START</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="n">END</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">int</span> <span class="nf">minMeetingRooms</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Interval</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">intervals</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">vector</span><span class="o">&lt;</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">bool</span><span class="o">&gt;&gt;</span> <span class="n">vec</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span><span class="o">&amp;</span> <span class="nl">itv</span> <span class="p">:</span> <span class="n">intervals</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">vec</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">make_pair</span><span class="p">(</span><span class="n">itv</span><span class="p">.</span><span class="n">start</span><span class="p">,</span> <span class="n">START</span><span class="p">));</span>
+</span><span class='line'>            <span class="n">vec</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">make_pair</span><span class="p">(</span><span class="n">itv</span><span class="p">.</span><span class="n">end</span><span class="p">,</span> <span class="n">END</span><span class="p">));</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">std</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">vec</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">vec</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span>
+</span><span class='line'>        <span class="p">[](</span><span class="k">const</span> <span class="k">auto</span><span class="o">&amp;</span> <span class="n">l</span><span class="p">,</span> <span class="k">const</span> <span class="k">auto</span><span class="o">&amp;</span> <span class="n">r</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">l</span><span class="p">.</span><span class="n">first</span> <span class="o">&lt;</span> <span class="n">r</span><span class="p">.</span><span class="n">first</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">rooms</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">current</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span><span class="o">&amp;</span> <span class="nl">it</span> <span class="p">:</span> <span class="n">vec</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">it</span><span class="p">.</span><span class="n">second</span><span class="p">)</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="n">current</span><span class="o">++</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="k">else</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="n">current</span><span class="o">--</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="n">rooms</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">max</span><span class="p">(</span><span class="n">rooms</span><span class="p">,</span> <span class="n">current</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">rooms</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>同时在网上看到了两个不错的解法。</p>
+
+<h5>解法一：</h5>
+
+<p>还是使用hashmap，但是只存start和end点的count，最后遍历map，然后sum所有start和end，并且track max value，最后max value就是结果。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">minMeetingRooms</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Interval</span><span class="o">&gt;&amp;</span> <span class="n">intervals</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="n">m</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="nl">a</span> <span class="p">:</span> <span class="n">intervals</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="o">++</span><span class="n">m</span><span class="p">[</span><span class="n">a</span><span class="p">.</span><span class="n">start</span><span class="p">];</span>
+</span><span class='line'>            <span class="o">--</span><span class="n">m</span><span class="p">[</span><span class="n">a</span><span class="p">.</span><span class="n">end</span><span class="p">];</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">rooms</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">res</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="nl">it</span> <span class="p">:</span> <span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">res</span> <span class="o">=</span> <span class="n">max</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">rooms</span> <span class="o">+=</span> <span class="n">it</span><span class="p">.</span><span class="n">second</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">res</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h5>解法二：</h5>
+
+<p>使用最小堆去track离当前最近的会议结束的时间(last.end)，如果last.end &lt;= cur.start，就表示上一个会议已经结束，可以将其从heap里pop出去，这样我们动态的maintain了一个heap，heap的size就表示当前的会议一共要多少间会议室。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">minMeetingRooms</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Interval</span><span class="o">&gt;&amp;</span> <span class="n">intervals</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">sort</span><span class="p">(</span><span class="n">intervals</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">intervals</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span> <span class="p">[](</span><span class="k">const</span> <span class="n">Interval</span> <span class="o">&amp;</span><span class="n">a</span><span class="p">,</span> <span class="k">const</span> <span class="n">Interval</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">){</span><span class="k">return</span> <span class="n">a</span><span class="p">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">.</span><span class="n">start</span><span class="p">;});</span>
+</span><span class='line'>        <span class="n">priority_queue</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">greater</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;</span> <span class="n">q</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="nl">a</span> <span class="p">:</span> <span class="n">intervals</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">q</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="n">q</span><span class="p">.</span><span class="n">top</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">a</span><span class="p">.</span><span class="n">start</span><span class="p">)</span> <span class="n">q</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
+</span><span class='line'>            <span class="n">q</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">end</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">q</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[736. Parse Lisp Expression]]></title>
