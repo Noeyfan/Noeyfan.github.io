@@ -4,7 +4,7 @@
   <title><![CDATA[Category: interview | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/interview/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2018-03-21T22:26:15-07:00</updated>
+  <updated>2018-03-28T01:00:53-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -12,6 +12,89 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[427. Generate Parentheses]]></title>
+    <link href="http://fyou.me/blog/2018/03/28/427-generate-parentheses/"/>
+    <updated>2018-03-28T00:05:47-07:00</updated>
+    <id>http://fyou.me/blog/2018/03/28/427-generate-parentheses</id>
+    <content type="html"><![CDATA[<p>这道题给定n，然后输出所有长度为2n的valid parentheses.</p>
+
+<p><strong>解法一：</strong></p>
+
+<p>最简单的解法是枚举，用两个变量num_of_left, num_of_right去track还有多少个左括号和右括号可以使用。只要有左括号可以用就可以继续递归generate，但是只有可用右括号大于左括号时候才可以继续递归generate，防止&#8221;)(&ldquo;的情况。</p>
+
+<pre><code class="c++">class Solution {
+public:
+    vector&lt;string&gt; generateParenthesis(int n) {
+        vector&lt;string&gt; ret;
+        generate(ret, "", n, n);
+        return ret;
+    }
+
+    void generate(
+        vector&lt;string&gt;&amp; ret,
+        string s,
+        int num_of_left,
+        int num_of_right)
+    {
+        if (num_of_left == 0 &amp;&amp; num_of_right == 0)
+        {
+            ret.push_back(s);
+            return;
+        }
+
+        if (num_of_left &gt; 0)
+        {
+            generate(ret, s+"(", num_of_left-1, num_of_right);
+        }
+        if (num_of_right &gt; num_of_left)
+        {
+            generate(ret, s+")", num_of_left, num_of_right-1);
+        }
+    }
+};
+</code></pre>
+
+<p><strong>解法二：</strong></p>
+
+<p>dp的思路 ，想求第f(n)，就是将&#8221;()&ldquo;加入f(n-1)的结果：</p>
+
+<p>f(0): &ldquo;&rdquo;</p>
+
+<p>f(1): &ldquo;(&#8220;f(0)&rdquo;)&#8221;</p>
+
+<p>f(2): &ldquo;(&#8220;f(0)&rdquo;)&ldquo;f(1), &rdquo;(&ldquo;f(1)&rdquo;)&#8221;</p>
+
+<p>f(3): &ldquo;(&#8220;f(0)&rdquo;)&ldquo;f(2), &rdquo;(&ldquo;f(1)&rdquo;)&ldquo;f(1), &rdquo;(&ldquo;f(2)&rdquo;)&#8221;</p>
+
+<p>所以 f(n) = &ldquo;(&#8220;f(0)&rdquo;)&ldquo;f(n-1) , &rdquo;(&ldquo;f(1)&rdquo;)&ldquo;f(n-2) &rdquo;(&ldquo;f(2)&rdquo;)&ldquo;f(n-3) … &rdquo;(&ldquo;f(i)&rdquo;)&ldquo;f(n-1-i) … &rdquo;(f(n-1)&ldquo;)&rdquo;</p>
+
+<pre><code class="c++">class Solution {
+public:
+    vector&lt;string&gt; generateParenthesis(int n) {
+        vector&lt;vector&lt;string&gt;&gt; tmp = ;
+        for (int j = 1; j &lt;= n; ++j)
+        {
+            vector&lt;string&gt; vec;
+            for (int i = 0; i &lt; j; ++i)
+            {
+                for (auto fst : tmp[i])
+                {
+                    for (auto snd : tmp[j-i-1])
+                    {
+                        vec.push_back("("+fst+")"+snd);
+                    }
+                }
+            }
+            tmp.push_back(vec);
+        }
+        return tmp.back();
+    }
+};
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[919. Meeting Rooms II]]></title>

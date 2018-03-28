@@ -4,13 +4,152 @@
   <title><![CDATA[NOEY]]></title>
   <link href="http://fyou.me/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2018-03-21T22:26:15-07:00</updated>
+  <updated>2018-03-28T01:00:53-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
     
   </author>
 
+  
+  <entry>
+    <title type="html"><![CDATA[427. Generate Parentheses]]></title>
+    <link href="http://fyou.me/blog/2018/03/28/427-generate-parentheses/"/>
+    <updated>2018-03-28T00:05:47-07:00</updated>
+    <id>http://fyou.me/blog/2018/03/28/427-generate-parentheses</id>
+    <content type="html"><![CDATA[<p>这道题给定n，然后输出所有长度为2n的valid parentheses.</p>
+
+<p><strong>解法一：</strong></p>
+
+<p>最简单的解法是枚举，用两个变量num_of_left, num_of_right去track还有多少个左括号和右括号可以使用。只要有左括号可以用就可以继续递归generate，但是只有可用右括号大于左括号时候才可以继续递归generate，防止&#8221;)(&ldquo;的情况。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="n">vector</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">generateParenthesis</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">vector</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">ret</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">generate</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">void</span> <span class="n">generate</span><span class="p">(</span>
+</span><span class='line'>        <span class="n">vector</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;&amp;</span> <span class="n">ret</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">string</span> <span class="n">s</span><span class="p">,</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">num_of_left</span><span class="p">,</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">num_of_right</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">num_of_left</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">num_of_right</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">ret</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+</span><span class='line'>            <span class="k">return</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">num_of_left</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">generate</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">s</span><span class="o">+</span><span class="s">&quot;(&quot;</span><span class="p">,</span> <span class="n">num_of_left</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_of_right</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">num_of_right</span> <span class="o">&gt;</span> <span class="n">num_of_left</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">generate</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">s</span><span class="o">+</span><span class="s">&quot;)&quot;</span><span class="p">,</span> <span class="n">num_of_left</span><span class="p">,</span> <span class="n">num_of_right</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>解法二：</strong></p>
+
+<p>dp的思路 ，想求第f(n)，就是将&#8221;()&ldquo;加入f(n-1)的结果：</p>
+
+<p>f(0): &ldquo;&rdquo;</p>
+
+<p>f(1): &ldquo;(&#8220;f(0)&rdquo;)&#8221;</p>
+
+<p>f(2): &ldquo;(&#8220;f(0)&rdquo;)&ldquo;f(1), &rdquo;(&ldquo;f(1)&rdquo;)&#8221;</p>
+
+<p>f(3): &ldquo;(&#8220;f(0)&rdquo;)&ldquo;f(2), &rdquo;(&ldquo;f(1)&rdquo;)&ldquo;f(1), &rdquo;(&ldquo;f(2)&rdquo;)&#8221;</p>
+
+<p>所以 f(n) = &ldquo;(&#8220;f(0)&rdquo;)&ldquo;f(n-1) , &rdquo;(&ldquo;f(1)&rdquo;)&ldquo;f(n-2) &rdquo;(&ldquo;f(2)&rdquo;)&ldquo;f(n-3) … &rdquo;(&ldquo;f(i)&rdquo;)&ldquo;f(n-1-i) … &rdquo;(f(n-1)&ldquo;)&rdquo;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="n">vector</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">generateParenthesis</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">vector</span><span class="o">&lt;</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;&gt;</span> <span class="n">tmp</span> <span class="o">=</span> <span class="p">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;=</span> <span class="n">n</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">vector</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">vec</span><span class="p">;</span>
+</span><span class='line'>            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">j</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="nl">fst</span> <span class="p">:</span> <span class="n">tmp</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+</span><span class='line'>                <span class="p">{</span>
+</span><span class='line'>                    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="nl">snd</span> <span class="p">:</span> <span class="n">tmp</span><span class="p">[</span><span class="n">j</span><span class="o">-</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+</span><span class='line'>                    <span class="p">{</span>
+</span><span class='line'>                        <span class="n">vec</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="s">&quot;(&quot;</span><span class="o">+</span><span class="n">fst</span><span class="o">+</span><span class="s">&quot;)&quot;</span><span class="o">+</span><span class="n">snd</span><span class="p">);</span>
+</span><span class='line'>                    <span class="p">}</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="n">tmp</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">vec</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">tmp</span><span class="p">.</span><span class="n">back</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[919. Meeting Rooms II]]></title>
