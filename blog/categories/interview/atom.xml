@@ -4,7 +4,7 @@
   <title><![CDATA[Category: interview | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/interview/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2018-03-28T01:05:06-07:00</updated>
+  <updated>2018-04-01T15:30:01-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -12,6 +12,82 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[5. Kth Largest Element (快排之思)]]></title>
+    <link href="http://fyou.me/blog/2018/04/01/5-kth-largest-element/"/>
+    <updated>2018-04-01T14:23:39-07:00</updated>
+    <id>http://fyou.me/blog/2018/04/01/5-kth-largest-element</id>
+    <content type="html"><![CDATA[<p>起因源于我与同事争论，find kth largest element是O(n)的复杂度还是O(nlogn) 。我一直认为find kth largest element 最优解与快排同源，所以应该是O(nlogn)，事实证明我是错的，实际的解法是快速选择，O(n)最优情况，O(n<sup>2</sup>)最差情况。</p>
+
+<p>解法都大同小异如下: （我取了中间点作为pivot，最简单的做法是取头或者尾作为pivot）</p>
+
+<pre><code class="c++">class Solution {
+public:
+    int findKthLargest(vector&lt;int&gt;&amp; nums, int k) {
+        return find(nums, 0, nums.size()-1, k);
+    }
+
+    int partition(vector&lt;int&gt;&amp; nums, int begin, int end, int k)
+    {
+        if (begin &gt; end) return -1; // should not happend
+        int p = nums[(end + begin)/2];
+        int i  = begin, j = end;
+        while(i != j)
+        {
+            if (nums[j] &gt; p)
+            {
+                j--;
+            }
+            else if (nums[i] &lt; p)
+            {
+                i++;
+            }
+            else
+            {
+                std::swap(nums[i], nums[j]);
+                if (nums[j] == p) i++; // edge case where after swap if nums[j] == p then we can't --j
+                else j--;
+            }
+        }
+        int diff = end-i+1-k;
+        if (diff == 0)
+        {
+            return nums[i];
+        }
+        else if (diff &gt; 0)
+        {
+            return find(nums,i+1,end,k); // i j are the same anyways
+        }
+        else
+        {
+            return find(nums,begin,j-1,-diff); // i j are the same anyways
+        }
+    }
+};
+</code></pre>
+
+<p>关键在于复杂度的分析。</p>
+
+<h4>快排：</h4>
+
+<p>快排的(average)复杂度之所以为O(nlogn)，因为每次partition需要O(n)，</p>
+
+<p><strong>最差情况：</strong>每次partition正好为<code>[]和[0..n]</code> ，也就是<code>T(n)=T(n-1)+T(0)+O(n) -&gt; T(n)=T(n-1)+O(n)-&gt; T(n)=O(n^2)</code></p>
+
+<p><strong>最优情况：</strong>每次partition正好为<code>[0..n/2-1]和[n/2..n]</code> ，也就是<code>T(n)=2T(n/2)+O(n) -&gt; T(n)=O(nlogn)</code></p>
+
+<p>同时也可以简单理解为最差需要partition O(n)次而最优只需要partition O(logn)次</p>
+
+<h4><strong>快速选择：</strong></h4>
+
+<p>快速选择的(average)复杂度之所以为O(n)，因为每次递归只需要partition整个array的一半，</p>
+
+<p><strong>最差情况：</strong>依旧与快排类似，如果每次pivot都选择了最小或者最大，那么还是需要O(n<sup>2</sup>)去完成整个操作</p>
+
+<p><strong>最优情况：</strong>如果pivot正好选择了中间值，那么<code>T(n)=T(n/2)+O(n) -&gt; T(n)=2O(n) -&gt; T(n)=O(n)</code></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[427. Generate Parentheses]]></title>
@@ -478,57 +554,6 @@ bool isMatch(string s, string p) {
 <h4>相似题目</h4>
 
 <p><code>// placeholder，将遇到的相似题目加入此处</code></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[面试总结]]></title>
-    <link href="http://fyou.me/blog/2015/03/01/epic/"/>
-    <updated>2015-03-01T12:41:09-08:00</updated>
-    <id>http://fyou.me/blog/2015/03/01/epic</id>
-    <content type="html"><![CDATA[<h3>Epic</h3>
-
-<p>说来这也算是这辈子第一次tech interview, 总结一下把。总体面试还是分为两块,技术性问题和非技术性问题。</p>
-
-<h3>Non-Tech</h3>
-
-<p>非技术性问题问了目前为止解决的最难的bug是什么, 你最喜欢的游戏是什么，给你一个机会improve，你会怎么improve。</p>
-
-<h3>Tech</h3>
-
-<p>问了Array, List, Tree, Hashtable 各自的优劣,我萌萌的完全不知道该怎么答。回头整理了下发在<a href="https://docs.google.com/spreadsheets/d/1RdcEWxH6dcAfvAEpaDvLp4lW7AwC2C0RNDvXfqlq5yI/edit?usp=sharing">这里</a>,基本从两个角度作答:1.复杂度 2.overhead</p>
-
-<h3>C++</h3>
-
-<ul>
-<li>什么是Virtual Destructor: 不用作<a href="https://github.com/Noeyfan/CodingPractice/blob/master/virtual/vf_destructor.cc">owned base class pointer</a>的时候不用.</li>
-</ul>
-
-
-<pre><code class="C">A* p = new B();
-delete p;
-</code></pre>
-
-<ul>
-<li>virtual function 是怎么样实现的(一般实现virtual function的时候会把所有的函数指针放到一个<a href="http://en.wikipedia.org/wiki/Virtual_method_table">表(vtable)里</a>,</li>
-</ul>
-
-
-<pre><code class="">一个类有10个virtual function你初始化一个子类对象这个子类对象一般多大？
-假设基类size为A，子类size为B假设基类所有成员size和为A，
-子类自己所有成员size和为B创建一个子类对象，占多大空间？ 
-
-答案:A+B+sizeof(pointer_type), 另外alignment可能让他更大)
-</code></pre>
-
-<ul>
-<li>几何问题: 做一个2D game, 不用ray cast如何知道A是否看的见B, 很简单, Va*(Pb-Pa) > 0 说明能看得见, 反之看不见。</li>
-</ul>
-
-
-<h3>More</h3>
-
-<p>还是要学好C/C++,<a href="http://www.slideshare.net/olvemaudal/deep-c">deep-C</a></p>
 ]]></content>
   </entry>
   

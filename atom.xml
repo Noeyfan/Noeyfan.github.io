@@ -4,13 +4,133 @@
   <title><![CDATA[NOEY]]></title>
   <link href="http://fyou.me/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2018-03-28T01:05:06-07:00</updated>
+  <updated>2018-04-01T15:30:01-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
     
   </author>
 
+  
+  <entry>
+    <title type="html"><![CDATA[5. Kth Largest Element (快排之思)]]></title>
+    <link href="http://fyou.me/blog/2018/04/01/5-kth-largest-element/"/>
+    <updated>2018-04-01T14:23:39-07:00</updated>
+    <id>http://fyou.me/blog/2018/04/01/5-kth-largest-element</id>
+    <content type="html"><![CDATA[<p>起因源于我与同事争论，find kth largest element是O(n)的复杂度还是O(nlogn) 。我一直认为find kth largest element 最优解与快排同源，所以应该是O(nlogn)，事实证明我是错的，实际的解法是快速选择，O(n)最优情况，O(n<sup>2</sup>)最差情况。</p>
+
+<p>解法都大同小异如下: （我取了中间点作为pivot，最简单的做法是取头或者尾作为pivot）</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">findKthLargest</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">nums</span><span class="p">,</span> <span class="kt">int</span> <span class="n">k</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">find</span><span class="p">(</span><span class="n">nums</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">nums</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">k</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">partition</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">nums</span><span class="p">,</span> <span class="kt">int</span> <span class="n">begin</span><span class="p">,</span> <span class="kt">int</span> <span class="n">end</span><span class="p">,</span> <span class="kt">int</span> <span class="n">k</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">begin</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">)</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="c1">// should not happend</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">p</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[(</span><span class="n">end</span> <span class="o">+</span> <span class="n">begin</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">];</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">i</span>  <span class="o">=</span> <span class="n">begin</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">end</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">while</span><span class="p">(</span><span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">nums</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">p</span><span class="p">)</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="n">j</span><span class="o">--</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">p</span><span class="p">)</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="n">i</span><span class="o">++</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="k">else</span>
+</span><span class='line'>            <span class="p">{</span>
+</span><span class='line'>                <span class="n">std</span><span class="o">::</span><span class="n">swap</span><span class="p">(</span><span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">nums</span><span class="p">[</span><span class="n">j</span><span class="p">]);</span>
+</span><span class='line'>                <span class="k">if</span> <span class="p">(</span><span class="n">nums</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="n">p</span><span class="p">)</span> <span class="n">i</span><span class="o">++</span><span class="p">;</span> <span class="c1">// edge case where after swap if nums[j] == p then we can&#39;t --j</span>
+</span><span class='line'>                <span class="k">else</span> <span class="n">j</span><span class="o">--</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">diff</span> <span class="o">=</span> <span class="n">end</span><span class="o">-</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">-</span><span class="n">k</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">diff</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">diff</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">find</span><span class="p">(</span><span class="n">nums</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">end</span><span class="p">,</span><span class="n">k</span><span class="p">);</span> <span class="c1">// i j are the same anyways</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">else</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">find</span><span class="p">(</span><span class="n">nums</span><span class="p">,</span><span class="n">begin</span><span class="p">,</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="n">diff</span><span class="p">);</span> <span class="c1">// i j are the same anyways</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>关键在于复杂度的分析。</p>
+
+<h4>快排：</h4>
+
+<p>快排的(average)复杂度之所以为O(nlogn)，因为每次partition需要O(n)，</p>
+
+<p><strong>最差情况：</strong>每次partition正好为<code>[]和[0..n]</code> ，也就是<code>T(n)=T(n-1)+T(0)+O(n) -&gt; T(n)=T(n-1)+O(n)-&gt; T(n)=O(n^2)</code></p>
+
+<p><strong>最优情况：</strong>每次partition正好为<code>[0..n/2-1]和[n/2..n]</code> ，也就是<code>T(n)=2T(n/2)+O(n) -&gt; T(n)=O(nlogn)</code></p>
+
+<p>同时也可以简单理解为最差需要partition O(n)次而最优只需要partition O(logn)次</p>
+
+<h4><strong>快速选择：</strong></h4>
+
+<p>快速选择的(average)复杂度之所以为O(n)，因为每次递归只需要partition整个array的一半，</p>
+
+<p><strong>最差情况：</strong>依旧与快排类似，如果每次pivot都选择了最小或者最大，那么还是需要O(n<sup>2</sup>)去完成整个操作</p>
+
+<p><strong>最优情况：</strong>如果pivot正好选择了中间值，那么<code>T(n)=T(n/2)+O(n) -&gt; T(n)=2O(n) -&gt; T(n)=O(n)</code></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[427. Generate Parentheses]]></title>
