@@ -4,7 +4,7 @@
   <title><![CDATA[Category: interview | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/interview/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2018-04-01T15:30:01-07:00</updated>
+  <updated>2018-04-01T19:56:54-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -484,11 +484,14 @@ bool imp(const char* c, const char* p) {
 
 bool imp(const char* c, const char* p) {
     // only when regex reaches the end, *c check make sense
-    if (*p == '\0') return *c == '\0'; 
+    if (*p == '\0') return *c == '\0';
     if (*(p+1) == '*') {
-        return ((*p == *c || (*c != '\0' &amp;&amp; *p == '.'))
-                &amp;&amp; imp(c+1, p)) 
-          || imp(c, p+2);
+        return
+          imp(c, p+2)
+          // test if c is end of string then we can safely
+          // recursively call imp(c+1, p)
+          || ((*p == *c || (*c != '\0' &amp;&amp; *p == '.'))
+                &amp;&amp; imp(c+1, p));
     }
     if (*c == *p || (*c != '\0' &amp;&amp; *p == '.')) {
         return imp(c+1, p+1);
