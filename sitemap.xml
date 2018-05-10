@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://fyou.me/blog/2018/05/09/minimize-max-distance-to-gas-station/</loc>
+    <lastmod>2018-05-09T22:25:00-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://fyou.me/blog/2018/04/01/5-kth-largest-element/</loc>
     <lastmod>2018-04-01T14:23:39-07:00</lastmod>
   </url>
@@ -92,6 +96,12 @@
   </url>
   <url>
     <loc>http://fyou.me/blog/categories/lintcode/</loc>
+  </url>
+  <url>
+    <loc>http://fyou.me/blog/categories/leetcode/</loc>
+  </url>
+  <url>
+    <loc>http://fyou.me/posts/2/</loc>
   </url>
   <url>
     <loc>http://fyou.me/about/index.html</loc>

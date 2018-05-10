@@ -1,0 +1,213 @@
+
+<!DOCTYPE HTML>
+<html lang="en-GB">
+<head>
+	<meta charset="utf-8">
+	<title>774.Minimize Max Distance to Gas Station  | NOEY</title>
+
+	<meta name="author" content="Fan You">
+
+<meta name="description" content="https://leetcode.com/problems/minimize-max-distance-to-gas-station 题意为：给定一些坐标点，表示坐标轴上已有的gas station，同时给定K，表示将要再插入K个gas station，插完以后使gas &hellip;"> <meta name="keywords" content="">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="NOEY" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">NOEY</a></h1>
+<span class="tagline"></span>
+
+
+</header>
+
+	<div id="content" class="inner"><article class="post">
+	<header>
+		<h2 class="title">774.Minimize Max Distance to Gas Station</h2>
+		<div class="meta date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-05-09T22:25:00-07:00" pubdate data-updated="true"></time></div>
+	</header>
+	<div class="entry-content"><p><a href="https://leetcode.com/problems/minimize-max-distance-to-gas-station">https://leetcode.com/problems/minimize-max-distance-to-gas-station</a></p>
+
+<p>题意为：给定一些坐标点，表示坐标轴上已有的gas station，同时给定K，表示将要再插入K个gas station，插完以后使gas station之间的最大距离最小。</p>
+
+<p>首先要从离散的点抽象出Interval的概念，其实已有的gas station就是一个个Interval。更为关键的是，这些interval可以视为永远不变，唯一变化的就是他们里边可能插入多少个K。基于这些interval，我们每次选择插入K的时候，只要选择插入当前所有interval中dist最大的那个，一直插入直到它比第二大小为止。插完所有的K，我们就得到了最后的解。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">struct</span> <span class="n">Interval</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">length</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">dist</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Interval</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="o">:</span> <span class="n">length</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">k</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">dist</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="p">{}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">operator</span><span class="o">&lt;</span> <span class="p">(</span><span class="k">const</span> <span class="n">Interval</span><span class="o">&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="n">other</span><span class="p">.</span><span class="n">dist</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">void</span> <span class="n">addK</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">k</span><span class="o">++</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">dist</span> <span class="o">=</span> <span class="n">length</span><span class="o">/</span><span class="n">k</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">priority_queue</span><span class="o">&lt;</span><span class="n">Interval</span><span class="o">&gt;</span> <span class="n">buildQueue</span><span class="p">(</span><span class="k">const</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">ret</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
+</span><span class='line'>    <span class="n">adjacent_difference</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">v</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span> <span class="n">ret</span><span class="p">.</span><span class="n">begin</span><span class="p">());</span>
+</span><span class='line'>    <span class="n">ret</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">ret</span><span class="p">.</span><span class="n">begin</span><span class="p">());</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">priority_queue</span><span class="o">&lt;</span><span class="n">Interval</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ret</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">ret</span><span class="p">.</span><span class="n">end</span><span class="p">());</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="n">minMaxDist</span><span class="p">(</span><span class="k">const</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="kt">int</span> <span class="n">k</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">auto</span> <span class="n">pq</span> <span class="o">=</span> <span class="n">buildQueue</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">maxDist</span> <span class="o">=</span> <span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">back</span><span class="p">()</span> <span class="o">-</span> <span class="n">v</span><span class="p">.</span><span class="n">front</span><span class="p">())</span><span class="o">/</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span> <span class="c1">// just for optimization</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">while</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">Interval</span> <span class="n">top</span> <span class="o">=</span> <span class="n">pq</span><span class="p">.</span><span class="n">top</span><span class="p">();</span>
+</span><span class='line'>        <span class="n">pq</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">while</span><span class="p">(</span><span class="n">pq</span><span class="p">.</span><span class="n">top</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">top</span> <span class="o">||</span> <span class="n">top</span><span class="p">.</span><span class="n">dist</span> <span class="o">&gt;</span> <span class="n">maxDist</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">top</span><span class="p">.</span><span class="n">addK</span><span class="p">();</span>
+</span><span class='line'>            <span class="n">k</span><span class="o">--</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="n">pq</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">top</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">pq</span><span class="p">.</span><span class="n">top</span><span class="p">().</span><span class="n">dist</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这题的难点在于正确理解题意并抽象化后找出算法，关键点在于：</p>
+
+<ul>
+<li>由于最早给定的gas station，随着K的插入，变化的并不是interval，而是每个interval内部的dist。</li>
+<li>只关注最后的最大距离，并不关心每个gas station插在了哪里。</li>
+</ul>
+
+</div>
+
+</article>
+
+	
+	<div class="share">
+	</div>
+
+
+
+
+<section id="comment">
+    <!--h2 class="title">Comments</h2-->
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+</div>
+	<footer id="footer" class="inner"><footer>
+<div class="about">
+<hr>
+<a href="https://twitter.com/youbuer"><img
+src="https://s.gravatar.com/avatar/34fe2d98d60e35a82cf6d649e1f93a91?s=640"></img></a>
+<h4>Fan You</h4>
+<p><a href="https://twitter.com/youbuer">@fanyou</a>. A programmer in Carnegie
+Mellon University. See My
+<a
+href="https://github.com/Noeyfan">Github</a>, <a href="/portfolio">Portfolio</a>, <a href="/about">Resumé</a>
+and <a href="/blog/">Blog</a>.
+Contact me via <a href="mailto:youfan.noey@gamil.com">e-mail</a>.</p>
+</hr>
+</div>
+
+<div class="copy">
+&copy; 2018
+<a href="http://fyou.me/"></a>
+</footer>
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/hyphenator.js"></script>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'buertec';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://fyou.me/blog/2018/05/09/minimize-max-distance-to-gas-station/';
+        var disqus_url = 'http://fyou.me/blog/2018/05/09/minimize-max-distance-to-gas-station/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+</body>
+<script>
+  $(document).ready(function() {
+  // Make images center
+  $('p:has(img)').css('text-align', 'center');
+  });
+</script>
+</html>
