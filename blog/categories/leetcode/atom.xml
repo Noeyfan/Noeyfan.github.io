@@ -4,7 +4,7 @@
   <title><![CDATA[Category: leetcode | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/leetcode/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-01-14T22:42:44-08:00</updated>
+  <updated>2019-02-02T22:05:48-08:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -12,6 +12,137 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[787. Shortest Path with Constraint]]></title>
+    <link href="http://fyou.me/blog/2019/02/02/787-shortest-path-with-constraint/"/>
+    <updated>2019-02-02T13:08:21-08:00</updated>
+    <id>http://fyou.me/blog/2019/02/02/787-shortest-path-with-constraint</id>
+    <content type="html"><![CDATA[<p><a href="https://leetcode.com/problems/cheapest-flights-within-k-stops/">https://leetcode.com/problems/cheapest-flights-within-k-stops/</a></p>
+
+<p>在Weighted DAG里找到src到dst的最短路，且中间经过的点不能超过K.</p>
+
+<h5>使用priority_queue：</h5>
+
+<p>跟Dijkstra 最短路的思想类似，从src开始，一直往pq里插入所有可能的path，然后greedy的每轮只拿最小的vertice继续往前走，直到找到dst.</p>
+
+<p>由于必须同时满足:</p>
+
+<ul>
+<li>v.k >= -1</li>
+<li>v.index == dst</li>
+</ul>
+
+
+<p>而且一直都用priority_queue找最小的，所以不存在early return的情况。</p>
+
+<p>这个解法有很多的element会被repeatedly insert，memory usage大约到达了第二种解法的两倍! （因为priority_queue不支持decreaseKey operation，所以我们没办法in-place update已经有的key）</p>
+
+<pre><code class="c++">class Solution {
+    struct V {
+        int dist, index, k;
+    };
+
+public:
+    int findCheapestPrice(int n, vector&lt;vector&lt;int&gt;&gt;&amp; flights, int src, int dst, int K) {
+        unordered_map&lt;int, unordered_map&lt;int, int&gt;&gt; adjList;
+
+        for (const auto&amp; flight : flights) {
+            adjList[flight[0]][flight[1]] = flight[2];
+        }
+
+        priority_queue&lt;V, vector&lt;V&gt;, function&lt;bool(const V&amp;, const V&amp;)&gt;&gt; q(
+            [](const V&amp; left, const V&amp; right) { return left.dist &gt; right.dist;});
+
+        q.push({0, src, K});
+
+        while(!q.empty()) {
+            V v = q.top();
+            q.pop();
+
+            if (v.k &lt; -1) {
+                continue;
+            }
+
+            if (v.index == dst) {
+                return v.dist;
+            }
+
+            for (const auto&amp; e : adjList[v.index]) {
+                q.push({e.second + v.dist, e.first, v.k-1});
+            }
+        }
+
+        return -1;
+    }
+};
+</code></pre>
+
+<h5>使用queue:</h5>
+
+<p>简单的BFS 从src一直往dst找，每轮挪动1，同时一直keep track cheapest，distTo存在的意义就在于cache 已经visited过的vertice (optimize performance)。</p>
+
+<pre><code class="c++">class Solution {
+public:
+    int findCheapestPrice(int n, vector&lt;vector&lt;int&gt;&gt;&amp; flights, int src, int dst, int K) {
+        int cheapest = -1;
+
+        unordered_map&lt;int, unordered_map&lt;int, int&gt;&gt; adj_list;
+        vector&lt;int&gt; distTo(n);
+        distTo[src] = -1;
+
+        for (const auto&amp; flight : flights) {
+            adj_list[flight[0]][flight[1]] = flight[2];
+        }
+
+        // {index, price}
+        queue&lt;pair&lt;int, int&gt;&gt; q;
+        q.push({src, 0});
+
+        while (!q.empty() &amp;&amp; K &gt;= -1 ) {
+            int size = q.size();            
+            while (size-- &gt; 0) {    // concise
+                auto cur = q.front();
+                int index = cur.first, price = cur.second;
+                q.pop();
+
+                if (index == dst) {
+                    cheapest = -1 == cheapest ? price : min(cheapest, price);
+                }
+                else
+                {
+                    for (const auto&amp; e : adj_list[index]) {
+                        if (distTo[e.first] == 0 || distTo[e.first] &gt; e.second + price) {
+                            q.push({e.first, price + e.second});
+                            distTo[e.first] = price + e.second;
+                        }
+                    }
+                }
+            }
+
+            K--;
+        }
+
+        return cheapest;
+    }
+};
+</code></pre>
+
+<h4>Dijkstra</h4>
+
+<p>从这里让我想到了implement 一下Dijkstra。其实跟解法1确实非常相似，但是也有同样的问题就是priority_queue没办法in-place update key。</p>
+
+<p>还有一点不一样的是，Dijkstra没有K的限制，所以可以keep track两个东西:</p>
+
+<ul>
+<li>distTo</li>
+<li>edgeTo</li>
+</ul>
+
+
+<p>然后在插入的时候只有最优解的时候才插入，其他时候直接跳过。（priority_queue的解法则不行，必须得插入所有的元素因为不到找到dst不知道哪个会是最短的）</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[774. Minimize Max Distance to Gas Station]]></title>

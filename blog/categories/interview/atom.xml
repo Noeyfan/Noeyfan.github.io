@@ -4,7 +4,7 @@
   <title><![CDATA[Category: interview | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/interview/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-01-14T22:42:44-08:00</updated>
+  <updated>2019-02-02T22:05:48-08:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -12,6 +12,137 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[787. Shortest Path with Constraint]]></title>
+    <link href="http://fyou.me/blog/2019/02/02/787-shortest-path-with-constraint/"/>
+    <updated>2019-02-02T13:08:21-08:00</updated>
+    <id>http://fyou.me/blog/2019/02/02/787-shortest-path-with-constraint</id>
+    <content type="html"><![CDATA[<p><a href="https://leetcode.com/problems/cheapest-flights-within-k-stops/">https://leetcode.com/problems/cheapest-flights-within-k-stops/</a></p>
+
+<p>在Weighted DAG里找到src到dst的最短路，且中间经过的点不能超过K.</p>
+
+<h5>使用priority_queue：</h5>
+
+<p>跟Dijkstra 最短路的思想类似，从src开始，一直往pq里插入所有可能的path，然后greedy的每轮只拿最小的vertice继续往前走，直到找到dst.</p>
+
+<p>由于必须同时满足:</p>
+
+<ul>
+<li>v.k >= -1</li>
+<li>v.index == dst</li>
+</ul>
+
+
+<p>而且一直都用priority_queue找最小的，所以不存在early return的情况。</p>
+
+<p>这个解法有很多的element会被repeatedly insert，memory usage大约到达了第二种解法的两倍! （因为priority_queue不支持decreaseKey operation，所以我们没办法in-place update已经有的key）</p>
+
+<pre><code class="c++">class Solution {
+    struct V {
+        int dist, index, k;
+    };
+
+public:
+    int findCheapestPrice(int n, vector&lt;vector&lt;int&gt;&gt;&amp; flights, int src, int dst, int K) {
+        unordered_map&lt;int, unordered_map&lt;int, int&gt;&gt; adjList;
+
+        for (const auto&amp; flight : flights) {
+            adjList[flight[0]][flight[1]] = flight[2];
+        }
+
+        priority_queue&lt;V, vector&lt;V&gt;, function&lt;bool(const V&amp;, const V&amp;)&gt;&gt; q(
+            [](const V&amp; left, const V&amp; right) { return left.dist &gt; right.dist;});
+
+        q.push({0, src, K});
+
+        while(!q.empty()) {
+            V v = q.top();
+            q.pop();
+
+            if (v.k &lt; -1) {
+                continue;
+            }
+
+            if (v.index == dst) {
+                return v.dist;
+            }
+
+            for (const auto&amp; e : adjList[v.index]) {
+                q.push({e.second + v.dist, e.first, v.k-1});
+            }
+        }
+
+        return -1;
+    }
+};
+</code></pre>
+
+<h5>使用queue:</h5>
+
+<p>简单的BFS 从src一直往dst找，每轮挪动1，同时一直keep track cheapest，distTo存在的意义就在于cache 已经visited过的vertice (optimize performance)。</p>
+
+<pre><code class="c++">class Solution {
+public:
+    int findCheapestPrice(int n, vector&lt;vector&lt;int&gt;&gt;&amp; flights, int src, int dst, int K) {
+        int cheapest = -1;
+
+        unordered_map&lt;int, unordered_map&lt;int, int&gt;&gt; adj_list;
+        vector&lt;int&gt; distTo(n);
+        distTo[src] = -1;
+
+        for (const auto&amp; flight : flights) {
+            adj_list[flight[0]][flight[1]] = flight[2];
+        }
+
+        // {index, price}
+        queue&lt;pair&lt;int, int&gt;&gt; q;
+        q.push({src, 0});
+
+        while (!q.empty() &amp;&amp; K &gt;= -1 ) {
+            int size = q.size();            
+            while (size-- &gt; 0) {    // concise
+                auto cur = q.front();
+                int index = cur.first, price = cur.second;
+                q.pop();
+
+                if (index == dst) {
+                    cheapest = -1 == cheapest ? price : min(cheapest, price);
+                }
+                else
+                {
+                    for (const auto&amp; e : adj_list[index]) {
+                        if (distTo[e.first] == 0 || distTo[e.first] &gt; e.second + price) {
+                            q.push({e.first, price + e.second});
+                            distTo[e.first] = price + e.second;
+                        }
+                    }
+                }
+            }
+
+            K--;
+        }
+
+        return cheapest;
+    }
+};
+</code></pre>
+
+<h4>Dijkstra</h4>
+
+<p>从这里让我想到了implement 一下Dijkstra。其实跟解法1确实非常相似，但是也有同样的问题就是priority_queue没办法in-place update key。</p>
+
+<p>还有一点不一样的是，Dijkstra没有K的限制，所以可以keep track两个东西:</p>
+
+<ul>
+<li>distTo</li>
+<li>edgeTo</li>
+</ul>
+
+
+<p>然后在插入的时候只有最优解的时候才插入，其他时候直接跳过。（priority_queue的解法则不行，必须得插入所有的元素因为不到找到dst不知道哪个会是最短的）</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[774. Minimize Max Distance to Gas Station]]></title>
@@ -350,98 +481,6 @@ public:
         }
         return q.size();
     }
-};
-</code></pre>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[736. Parse Lisp Expression]]></title>
-    <link href="http://fyou.me/blog/2018/03/11/736-parse-lisp-expression/"/>
-    <updated>2018-03-11T21:46:05-07:00</updated>
-    <id>http://fyou.me/blog/2018/03/11/736-parse-lisp-expression</id>
-    <content type="html"><![CDATA[<p><a href="https://leetcode.com/problems/parse-lisp-expression/description/">https://leetcode.com/problems/parse-lisp-expression/description/</a></p>
-
-<p>(很喜欢leetcode里的这个解法，故此记录一下，不太喜欢的是使用了deque存symbol table，如果直接用map作为递归参数会更好。)</p>
-
-<p>解法用了top-down parsing，用getToken和++pos来consume token，优先处理add/mult的简单情况，然后处理let，逻辑清晰，值得学些。</p>
-
-<pre><code class="c++">class Solution {
-public:
-    int evaluate(string expression) {
-        scopes_.clear();
-        int pos = 0;
-        return eval(expression, pos);
-    }
-private:
-    int eval(const string&amp; s, int&amp; pos) {
-        scopes_.push_front(unordered_map&lt;string, int&gt;());
-        int value = 0; // The return value of current expr
-        if (s[pos] == '(') ++pos;
-
-        // command, variable or number
-        const string token = getToken(s, pos);
-
-        if (token == "add") {
-            int v1 = eval(s, ++pos);
-            int v2 = eval(s, ++pos);
-            value = v1 + v2;
-        } else if (token == "mult") {
-            int v1 = eval(s, ++pos);
-            int v2 = eval(s, ++pos);
-            value = v1 * v2;
-        } else if (token == "let") {
-            string var;
-            // expecting " var1 exp1 var2 exp2 ... last_expr)"
-            while (s[pos] != ')') {
-                ++pos;
-                // Must be last_expr
-                if (s[pos] == '(') {
-                    value = eval(s, ++pos);
-                    break;
-                }
-                // Get a token, could be "x" or "-12" for last_expr
-                var = getToken(s, pos);
-                // End of let, var is last_expr
-                if (s[pos] == ')') {
-                    if (isalpha(var[0]))
-                        value = getValue(var);
-                    else
-                        value = stoi(var);
-                    break;
-                }
-                // x -12 -&gt; set x to -12 and store in the current scope and take it as the current return value
-                value = scopes_.front()[var] = eval(s, ++pos);
-            }
-        } else if (isalpha(token[0])) {
-            value = getValue(token); // symbol
-        } else {
-            value = std::stoi(token); // number
-        }
-        if (s[pos] == ')') ++pos;
-        scopes_.pop_front();
-        return value;
-    }
-
-    int getValue(const string&amp; symbol) {
-        for (const auto&amp; scope : scopes_)
-            if (scope.count(symbol)) return scope.at(symbol);
-        return 0;
-    }
-
-    // Get a token from current pos.
-    // "let x" -&gt; "let"
-    // "-12 (add x y)" -&gt; "-12"
-    string getToken(const string&amp; s, int&amp; pos) {
-        string token;
-        while (pos &lt; s.length()) {
-            if (s[pos] == ')' || s[pos] == ' ') break;
-            token += s[pos++];
-        }
-        return token;
-    }
-
-    deque&lt;unordered_map&lt;string, int&gt;&gt; scopes_;
 };
 </code></pre>
 ]]></content>
