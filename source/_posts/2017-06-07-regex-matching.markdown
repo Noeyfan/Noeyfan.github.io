@@ -98,11 +98,14 @@ bool isMatch(string s, string p) {
 
 bool imp(const char* c, const char* p) {
   	// only when regex reaches the end, *c check make sense
-    if (*p == '\0') return *c == '\0'; 
+    if (*p == '\0') return *c == '\0';
     if (*(p+1) == '*') {
-        return ((*p == *c || (*c != '\0' && *p == '.'))
-                && imp(c+1, p)) 
-          || imp(c, p+2);
+        return
+          imp(c, p+2)
+          // test if c is end of string then we can safely
+          // recursively call imp(c+1, p)
+          || ((*p == *c || (*c != '\0' && *p == '.'))
+                && imp(c+1, p));
     }
     if (*c == *p || (*c != '\0' && *p == '.')) {
         return imp(c+1, p+1);

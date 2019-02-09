@@ -1,0 +1,61 @@
+---
+layout: post
+title: "774. Minimize Max Distance to Gas Station"
+date: 2018-05-09 22:25:00 -0700
+comments: true
+categories: [interview, leetcode]
+---
+https://leetcode.com/problems/minimize-max-distance-to-gas-station
+
+题意为：给定一些坐标点，表示坐标轴上已有的gas station，同时给定K，表示将要再插入K个gas station，插完以后使gas station之间的最大距离最小。
+
+首先要从离散的点抽象出Interval的概念，其实已有的gas station就是一个个Interval。更为关键的是，这些interval可以视为永远不变，唯一变化的就是他们里边可能插入多少个K。基于这些interval，我们每次选择插入K的时候，只要选择插入当前所有interval中dist最大的那个，一直插入直到它比第二大小为止。插完所有的K，我们就得到了最后的解。
+
+有了以上的理解，一个priority_queue就可以轻易的解决问题，用addK()去update当前interval里的value，然后把update完的top重新插回priority_queue。解法复杂度为O(klogn)
+
+```c++
+struct Interval {
+    int length, k, dist;
+
+    Interval(int i) : length(i), k(1), dist(i) {}
+
+    bool operator< (const Interval& other) const {
+        return dist < other.dist;
+    }
+
+    void addK() {
+        k++;
+        dist = length/k;
+    }
+};
+
+priority_queue<Interval> buildQueue(const vector<int>& v) {
+    vector<int> ret(v.size());
+    adjacent_difference(v.begin(), v.end(), ret.begin());
+    ret.erase(ret.begin());
+    return priority_queue<Interval>(ret.begin(), ret.end());
+}
+
+int minMaxDist(const vector<int>& v, int k) {
+    auto pq = buildQueue(v);
+    int maxDist = (v.back() - v.front())/(k+1); // just for optimization
+
+    while(k) {
+        Interval top = pq.top();
+        pq.pop();
+
+        while(pq.top() < top || top.dist > maxDist) {
+            top.addK();
+            k--;
+        }
+        pq.push(top);
+    }
+
+    return pq.top().dist;
+}
+```
+
+这题的难点在于正确理解题意并抽象化后找出算法，关键点在于：
+
+* 由于最早给定的gas station，随着K的插入，变化的并不是interval，而是每个interval内部的dist。
+* 只关注最后的最大距离，并不关心每个gas station插在了哪里。
