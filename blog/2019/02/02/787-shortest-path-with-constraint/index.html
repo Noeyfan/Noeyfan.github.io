@@ -240,7 +240,13 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h4>Dijkstra</h4>
+<h4>Floyd （复杂度高 O(n<sup>3</sup>)）</h4>
+
+<p>基于动态规划的做法。</p>
+
+<h4>Dijkstra（不能处理负环和负边）</h4>
+
+<p>适合dense 和 sparse graph</p>
 
 <p>从这里让我想到了implement 一下Dijkstra。其实跟解法1确实非常相似，但是也有同样的问题就是priority_queue没办法in-place update key。</p>
 
@@ -253,6 +259,14 @@
 
 
 <p>然后在插入的时候只有最优解的时候才插入，其他时候直接跳过。（priority_queue的解法则不行，必须得插入所有的元素因为不到找到dst不知道哪个会是最短的）</p>
+
+<h4>Bellman-Ford （都能处理）</h4>
+
+<p>不适合dense graph</p>
+
+<h4>SPFA（都能处理，但复杂度不稳定）</h4>
+
+<p>不适合dense graph</p>
 </div>
 
 </article>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: leetcode | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/leetcode/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-02-02T22:05:48-08:00</updated>
+  <updated>2019-02-08T23:54:31-08:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -12,6 +12,94 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[269. Alien Dictionary and Topological Sort]]></title>
+    <link href="http://fyou.me/blog/2019/02/08/269-alien-dictionary-and-topological-sort/"/>
+    <updated>2019-02-08T23:42:37-08:00</updated>
+    <id>http://fyou.me/blog/2019/02/08/269-alien-dictionary-and-topological-sort</id>
+    <content type="html"><![CDATA[<p>好久没碰到过拓扑排序的题目了，今天突然写到，花了4个小时 :( 这题的难点在于，找到它和拓扑排序的关系，以及如何构建graph.</p>
+
+<h5>如何构建graph</h5>
+
+<p>一开始想的有些复杂，其实就是两成对，找到第一个不相同的pair of char，即为graph的一条边</p>
+
+<h5>拓扑排序</h5>
+
+<p>拓扑排序适用于：</p>
+
+<ul>
+<li>多src和dependency的排序</li>
+<li>找graph里是否有环</li>
+</ul>
+
+
+<p>这题正好需要这两点，拓扑排序首先将没有incoming edge的点加入queue中，当queue不为空时，一直循环并update queue里所有点的neighbor的 incoming edge count，如果update之后 count == 0则加入queue中。</p>
+
+<p>如果有环的话那么环中的每个node的incoming edge都永远不会是0，所有最后只要比较一下结果的size是不是包含了所有node，就可以知道有没有环了。</p>
+
+<pre><code class="c++">class Solution {
+public:
+    string mergeOrders(
+        unordered_map&lt;char, unordered_set&lt;char&gt;&gt;&amp; g,
+        unordered_map&lt;char, int&gt;&amp; cnt
+    ) {       
+        queue&lt;char&gt; q;
+
+        for (const auto&amp; [ch, c] : cnt) {
+            if (c == 0) {
+                q.push(ch);
+            }
+        }
+
+        string ret = "";
+        while(!q.empty()) {
+            char c = q.front();
+            q.pop();
+
+            ret += c;
+            for (const auto&amp; e : g[c]) {
+                cnt[e]--;
+                if (cnt[e] == 0) q.push(e);
+            }
+        }
+
+        if (ret.size() != cnt.size()) return "";
+        return ret;
+    }
+
+    string alienOrder(vector&lt;string&gt;&amp; words) {
+        unordered_map&lt;char, unordered_set&lt;char&gt;&gt; g;
+        unordered_map&lt;char, int&gt; cnt;
+
+        for (int i = 0; i &lt; words.size(); ++i) {
+            for (int j = 0; j &lt; words[i].size(); ++j) {
+                cnt[words[i][j]] = 0;
+            }
+        }
+
+        for (int i = 0; i &lt; words.size()-1; ++i) {
+            string&amp; cur = words[i];
+            string&amp; next = words[i+1];
+
+            int limit = min(cur.size(), next.size());
+            for (int j = 0; j &lt; limit; ++j) {
+                if (cur[j] != next[j]) {
+                    if (g[cur[j]].find(next[j]) == g[cur[j]].end()) {
+                        g[cur[j]].insert(next[j]);
+                        cnt[next[j]] += 1;
+                    }
+                    break;
+                }
+            }
+        }
+
+        return mergeOrders(g, cnt);
+    }
+};
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[787. Shortest Path with Constraint]]></title>
@@ -128,7 +216,13 @@ public:
 };
 </code></pre>
 
-<h4>Dijkstra</h4>
+<h4>Floyd （复杂度高 O(n<sup>3</sup>)）</h4>
+
+<p>基于动态规划的做法。</p>
+
+<h4>Dijkstra（不能处理负环和负边）</h4>
+
+<p>适合dense 和 sparse graph</p>
 
 <p>从这里让我想到了implement 一下Dijkstra。其实跟解法1确实非常相似，但是也有同样的问题就是priority_queue没办法in-place update key。</p>
 
@@ -141,6 +235,14 @@ public:
 
 
 <p>然后在插入的时候只有最优解的时候才插入，其他时候直接跳过。（priority_queue的解法则不行，必须得插入所有的元素因为不到找到dst不知道哪个会是最短的）</p>
+
+<h4>Bellman-Ford （都能处理）</h4>
+
+<p>不适合dense graph</p>
+
+<h4>SPFA（都能处理，但复杂度不稳定）</h4>
+
+<p>不适合dense graph</p>
 ]]></content>
   </entry>
   
