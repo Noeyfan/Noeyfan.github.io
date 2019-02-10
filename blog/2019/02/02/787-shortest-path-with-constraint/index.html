@@ -7,7 +7,7 @@
 
 	<meta name="author" content="Fan You">
 
-<meta name="description" content="https://leetcode.com/problems/cheapest-flights-within-k-stops/ 在Weighted DAG里找到src到dst的最短路，且中间经过的点不能超过K. 使用priority_queue： 跟Dijkstra 最短路的思想类似，从src开始， &hellip;"> <meta name="keywords" content="">
+<meta name="description" content="https://leetcode.com/problems/cheapest-flights-within-k-stops/ 在Weighted DAG里找到src到dst的最短路，且中间经过的点不能超过K. Dijkstra, 使用priority_queue： 跟Dijkstra &hellip;"> <meta name="keywords" content="">
 
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -50,7 +50,7 @@
 
 <p>在Weighted DAG里找到src到dst的最短路，且中间经过的点不能超过K.</p>
 
-<h5>使用priority_queue：</h5>
+<h5>Dijkstra, 使用priority_queue：</h5>
 
 <p>跟Dijkstra 最短路的思想类似，从src开始，一直往pq里插入所有可能的path，然后greedy的每轮只拿最小的vertice继续往前走，直到找到dst.</p>
 
@@ -145,9 +145,9 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h5>使用queue:</h5>
+<h5>SPFA, 使用queue:</h5>
 
-<p>简单的BFS 从src一直往dst找，每轮挪动1，同时一直keep track cheapest，distTo存在的意义就在于cache 已经visited过的vertice (optimize performance)。</p>
+<p>SFPA（其实就是BFS!）从src一直往dst找，每轮挪动1，同时一直keep track cheapest，distTo存在的意义就在于cache 已经visited过的vertice (optimize performance)。</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>

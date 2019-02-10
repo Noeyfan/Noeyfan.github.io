@@ -4,7 +4,7 @@
   <title><![CDATA[Category: leetcode | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/leetcode/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-02-08T23:54:31-08:00</updated>
+  <updated>2019-02-09T22:21:56-08:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -110,7 +110,7 @@ public:
 
 <p>在Weighted DAG里找到src到dst的最短路，且中间经过的点不能超过K.</p>
 
-<h5>使用priority_queue：</h5>
+<h5>Dijkstra, 使用priority_queue：</h5>
 
 <p>跟Dijkstra 最短路的思想类似，从src开始，一直往pq里插入所有可能的path，然后greedy的每轮只拿最小的vertice继续往前走，直到找到dst.</p>
 
@@ -166,9 +166,9 @@ public:
 };
 </code></pre>
 
-<h5>使用queue:</h5>
+<h5>SPFA, 使用queue:</h5>
 
-<p>简单的BFS 从src一直往dst找，每轮挪动1，同时一直keep track cheapest，distTo存在的意义就在于cache 已经visited过的vertice (optimize performance)。</p>
+<p>SFPA（其实就是BFS!）从src一直往dst找，每轮挪动1，同时一直keep track cheapest，distTo存在的意义就在于cache 已经visited过的vertice (optimize performance)。</p>
 
 <pre><code class="c++">class Solution {
 public:
