@@ -4,7 +4,7 @@
   <title><![CDATA[Category: leetcode | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/leetcode/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-02-09T22:21:56-08:00</updated>
+  <updated>2019-02-11T11:46:33-08:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -212,6 +212,45 @@ public:
         }
 
         return cheapest;
+    }
+};
+</code></pre>
+
+<h5>SPFA Rev2</h5>
+
+<pre><code class="c++">class Solution {
+public:
+    int findCheapestPrice(int n, vector&lt;vector&lt;int&gt;&gt;&amp; flights, int src, int dst, int K) {
+        unordered_map&lt;int, vector&lt;pair&lt;int, int&gt;&gt;&gt; g; // pair of {to, price}
+
+        for (const auto&amp; f : flights) {
+            g[f[0]].emplace_back(f[1], f[2]);
+        }
+
+        vector&lt;int&gt; distTo(n);
+        // keep track of 
+        // cur, K, accumulated price
+        // * K: easy to write the loop without nested while
+        // * accumulated price: we have to track this because K limitation
+        //   and cannot do greedy updates
+        queue&lt;tuple&lt;int, int, int&gt;&gt; q;
+        q.push({src, K, 0});
+
+        while(!q.empty()) {
+            auto [cur, k, acc] = q.front();
+            q.pop();
+
+            if (k &lt; 0) continue;
+
+            for (const auto&amp; [to, price] : g[cur]) {
+                if (!distTo[to] || distTo[to] &gt; price + acc) {
+                    distTo[to] = price + acc;
+                    q.push({to, k-1, distTo[to]});
+                }
+            }
+        }
+
+        return distTo[dst] ? distTo[dst] : -1;
     }
 };
 </code></pre>
