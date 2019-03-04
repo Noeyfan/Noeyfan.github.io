@@ -4,7 +4,7 @@
   <title><![CDATA[Category: interview | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/interview/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-03-03T22:54:18-08:00</updated>
+  <updated>2019-03-03T23:09:59-08:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -183,7 +183,7 @@ public:
     <id>http://fyou.me/blog/2019/02/02/787-shortest-path-with-constraint</id>
     <content type="html"><![CDATA[<p><a href="https://leetcode.com/problems/cheapest-flights-within-k-stops/">https://leetcode.com/problems/cheapest-flights-within-k-stops/</a></p>
 
-<p>在Weighted DAG里找到src到dst的最短路，且中间经过的点不能超过K.</p>
+<p>在Weighted DAG里找到src到dst的最短路，且中间经过的点不能超过K. <a href="https://github.com/Noeyfan/CodingPractice/blob/master/leetcode/cheapestFlightsWitinKStopsImproved.cc">Solution with Path Tracking</a></p>
 
 <h5>Dijkstra, 使用priority_queue：</h5>
 
@@ -223,7 +223,6 @@ public:
         using T = tuple&lt;int, int, int&gt;;
         priority_queue&lt;T, vector&lt;T&gt;, greater&lt;T&gt;&gt; pq;  // dis, k, cur
         pq.push({0, K, src});
-        pathTo[src] = -1;
 
         while (!pq.empty()) {
             auto [dis, k, from] = pq.top();
@@ -361,6 +360,8 @@ public:
 
 <p>然后在插入的时候只有最优解的时候才插入，其他时候直接跳过。（priority_queue的解法则不行，必须得插入所有的元素因为不到找到dst不知道哪个会是最短的）</p>
 
+<p><a href="https://github.com/Noeyfan/noey_algos/blob/master/trivival/dijkstra.cc">Code</a></p>
+
 <h4>Bellman-Ford （都能处理）</h4>
 
 <p>复杂度为<code>O(E*V)</code></p>
@@ -372,6 +373,8 @@ public:
 <p>复杂度为<code>O(E*V)</code> in worst case，但是average running time是 <code>O(E)</code>, 可惜并没有办法证明。</p>
 
 <p>不适合dense graph</p>
+
+<p><a href="https://github.com/Noeyfan/noey_algos/blob/master/trivival/spfa.cc">Code</a></p>
 ]]></content>
   </entry>
   
