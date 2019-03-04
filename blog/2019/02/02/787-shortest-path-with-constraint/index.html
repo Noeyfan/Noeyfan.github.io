@@ -321,6 +321,8 @@
 
 <h4>Dijkstra（不能处理负环和负边）</h4>
 
+<p>复杂度为<code>O(E*logV)</code></p>
+
 <p>适合dense 和 sparse graph</p>
 
 <p>从这里让我想到了implement 一下Dijkstra。其实跟解法1确实非常相似，但是也有同样的问题就是priority_queue没办法in-place update key。</p>
@@ -337,9 +339,13 @@
 
 <h4>Bellman-Ford （都能处理）</h4>
 
+<p>复杂度为<code>O(E*V)</code></p>
+
 <p>不适合dense graph</p>
 
 <h4>SPFA（都能处理，但复杂度不稳定）</h4>
+
+<p>复杂度为<code>O(E*V)</code> in worst case，但是average running time是 <code>O(E)</code>, 可惜并没有办法证明。</p>
 
 <p>不适合dense graph</p>
 </div>

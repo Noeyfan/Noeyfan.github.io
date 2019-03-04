@@ -4,7 +4,7 @@
   <title><![CDATA[Category: leetcode | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/leetcode/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-02-11T11:46:33-08:00</updated>
+  <updated>2019-03-03T22:20:57-08:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -12,6 +12,81 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[324.Wiggle Sort II and Dutch national flag problem]]></title>
+    <link href="http://fyou.me/blog/2019/02/28/324-dot-wiggle-sort-ii-and-dutch-national-flag-problem/"/>
+    <updated>2019-02-28T12:16:37-08:00</updated>
+    <id>http://fyou.me/blog/2019/02/28/324-dot-wiggle-sort-ii-and-dutch-national-flag-problem</id>
+    <content type="html"><![CDATA[<p>一种特殊排序，排完以后要满足奇数位大于左右，偶数位小于左右。</p>
+
+<p><code>nums[0] &lt; nums[1] &gt; nums[2] &lt; nums[3] &gt; nums[4]...</code></p>
+
+<h5>解法一 O(nlogn) time, O(n) space</h5>
+
+<p>将原数组拷贝然后排序，最后从拷贝交叉插入原数组。</p>
+
+<p>值得注意的点在于 <code>j = (n+1)/2</code>的选取，原因是当数组为奇数的时候，选取靠后的index可以避免<code>m</code> underflow.</p>
+
+<pre><code class="c++">class Solution {
+public:
+    void wiggleSort(vector&lt;int&gt;&amp; nums) {
+        vector&lt;int&gt; tmp = nums;
+        int n = nums.size(), m = (n+1)/2, k = n;
+
+        sort(tmp.begin(), tmp.end());
+        for (int i = 0; i &lt; n; ++i) {
+            nums[i] = i &amp; 1 ? tmp[--k] : tmp[--m];
+        }
+    }
+};
+</code></pre>
+
+<h5>解法二 O(n) time, O(n) space</h5>
+
+<p>其实为了得到交叉排序的数组并不需要sort整个数组，只需要将数组一分为二 (按照median 做 partition)，然后再做交叉插入</p>
+
+<pre><code class="c++">class Solution {
+public:
+    void wiggleSort(vector&lt;int&gt;&amp; nums) {
+        if (nums.size() &lt; 2) return;
+
+        int n = nums.size(), m = (n+1)/2;
+        vector&lt;int&gt; copy = nums;
+
+        // find median
+        nth_element(nums.begin(), nums.begin() + m, nums.end());
+        int mid = nums[m];
+
+        threeWay(copy, mid);
+
+        // if odd pick from right partition
+        // if even pick from left partition
+        for (int i = 0; i &lt; nums.size(); ++i) {
+            nums[i] = i &amp; 1 ? copy[--n] : copy[--m];
+        }
+    }
+
+    // https://en.wikipedia.org/wiki/Dutch_national_flag_problem
+    void threeWay(vector&lt;int&gt;&amp; A, int mid) {
+        int i = 0, j = 0, k = A.size() - 1;
+
+        while(j &lt;= k) {
+            if (A[j] &lt; mid) {
+                swap(A[i], A[j]);
+                i++; j++;
+            } else if (A[j] &gt; mid) {
+                swap(A[j], A[k]);
+                k--;
+            } else {
+                j++;
+            }
+        }
+    }
+};
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[269. Alien Dictionary and Topological Sort]]></title>
@@ -261,6 +336,8 @@ public:
 
 <h4>Dijkstra（不能处理负环和负边）</h4>
 
+<p>复杂度为<code>O(E*logV)</code></p>
+
 <p>适合dense 和 sparse graph</p>
 
 <p>从这里让我想到了implement 一下Dijkstra。其实跟解法1确实非常相似，但是也有同样的问题就是priority_queue没办法in-place update key。</p>
@@ -277,9 +354,13 @@ public:
 
 <h4>Bellman-Ford （都能处理）</h4>
 
+<p>复杂度为<code>O(E*V)</code></p>
+
 <p>不适合dense graph</p>
 
 <h4>SPFA（都能处理，但复杂度不稳定）</h4>
+
+<p>复杂度为<code>O(E*V)</code> in worst case，但是average running time是 <code>O(E)</code>, 可惜并没有办法证明。</p>
 
 <p>不适合dense graph</p>
 ]]></content>
