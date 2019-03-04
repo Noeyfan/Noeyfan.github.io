@@ -4,7 +4,7 @@
   <title><![CDATA[NOEY]]></title>
   <link href="http://fyou.me/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-03-03T22:20:57-08:00</updated>
+  <updated>2019-03-03T22:54:18-08:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -352,38 +352,40 @@
 <span class='line-number'>36</span>
 <span class='line-number'>37</span>
 <span class='line-number'>38</span>
+<span class='line-number'>39</span>
 </pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
 </span><span class='line'>    <span class="k">struct</span> <span class="n">V</span> <span class="p">{</span>
 </span><span class='line'>        <span class="kt">int</span> <span class="n">dist</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">k</span><span class="p">;</span>
 </span><span class='line'>    <span class="p">};</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">public</span><span class="o">:</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">findCheapestPrice</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;&amp;</span> <span class="n">flights</span><span class="p">,</span> <span class="kt">int</span> <span class="n">src</span><span class="p">,</span> <span class="kt">int</span> <span class="n">dst</span><span class="p">,</span> <span class="kt">int</span> <span class="n">K</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;&gt;</span> <span class="n">adjList</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span><span class="o">&amp;</span> <span class="nl">flight</span> <span class="p">:</span> <span class="n">flights</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">adjList</span><span class="p">[</span><span class="n">flight</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">flight</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">flight</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">findCheapestPriceDijk</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">,</span>
+</span><span class='line'>                          <span class="k">const</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;&amp;</span> <span class="n">flights</span><span class="p">,</span>
+</span><span class='line'>                          <span class="kt">int</span> <span class="n">src</span><span class="p">,</span> <span class="kt">int</span> <span class="n">dst</span><span class="p">,</span> <span class="kt">int</span> <span class="n">K</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1">// build graph</span>
+</span><span class='line'>        <span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;&gt;</span> <span class="n">g</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span><span class="o">&amp;</span> <span class="nl">e</span> <span class="p">:</span> <span class="n">flights</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">g</span><span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span> <span class="c1">// from, to, weight</span>
 </span><span class='line'>        <span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'>        <span class="n">priority_queue</span><span class="o">&lt;</span><span class="n">V</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">V</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">function</span><span class="o">&lt;</span><span class="kt">bool</span><span class="p">(</span><span class="k">const</span> <span class="n">V</span><span class="o">&amp;</span><span class="p">,</span> <span class="k">const</span> <span class="n">V</span><span class="o">&amp;</span><span class="p">)</span><span class="o">&gt;&gt;</span> <span class="n">q</span><span class="p">(</span>
-</span><span class='line'>            <span class="p">[](</span><span class="k">const</span> <span class="n">V</span><span class="o">&amp;</span> <span class="n">left</span><span class="p">,</span> <span class="k">const</span> <span class="n">V</span><span class="o">&amp;</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">left</span><span class="p">.</span><span class="n">dist</span> <span class="o">&gt;</span> <span class="n">right</span><span class="p">.</span><span class="n">dist</span><span class="p">;});</span>
+</span><span class='line'>        <span class="c1">// tracker</span>
+</span><span class='line'>        <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">pathTo</span><span class="p">(</span><span class="n">n</span><span class="p">);</span>
 </span><span class='line'>
-</span><span class='line'>        <span class="n">q</span><span class="p">.</span><span class="n">push</span><span class="p">({</span><span class="mi">0</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">K</span><span class="p">});</span>
+</span><span class='line'>        <span class="c1">// Dijkstra</span>
+</span><span class='line'>        <span class="k">using</span> <span class="n">T</span> <span class="o">=</span> <span class="n">tuple</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">priority_queue</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">greater</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&gt;</span> <span class="n">pq</span><span class="p">;</span>  <span class="c1">// dis, k, cur</span>
+</span><span class='line'>        <span class="n">pq</span><span class="p">.</span><span class="n">push</span><span class="p">({</span><span class="mi">0</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">src</span><span class="p">});</span>
+</span><span class='line'>        <span class="n">pathTo</span><span class="p">[</span><span class="n">src</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>        <span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">q</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">V</span> <span class="n">v</span> <span class="o">=</span> <span class="n">q</span><span class="p">.</span><span class="n">top</span><span class="p">();</span>
-</span><span class='line'>            <span class="n">q</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
+</span><span class='line'>        <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">pq</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">auto</span> <span class="p">[</span><span class="n">dis</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">from</span><span class="p">]</span> <span class="o">=</span> <span class="n">pq</span><span class="p">.</span><span class="n">top</span><span class="p">();</span>
+</span><span class='line'>            <span class="n">pq</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
 </span><span class='line'>
-</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">k</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>                <span class="k">continue</span><span class="p">;</span>
-</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">k</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">continue</span><span class="p">;</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">from</span> <span class="o">==</span> <span class="n">dst</span><span class="p">)</span> <span class="k">return</span> <span class="n">dis</span><span class="p">;</span>
 </span><span class='line'>
-</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">index</span> <span class="o">==</span> <span class="n">dst</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>                <span class="k">return</span> <span class="n">v</span><span class="p">.</span><span class="n">dist</span><span class="p">;</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span><span class="o">&amp;</span> <span class="nl">e</span> <span class="p">:</span> <span class="n">adjList</span><span class="p">[</span><span class="n">v</span><span class="p">.</span><span class="n">index</span><span class="p">])</span> <span class="p">{</span>
-</span><span class='line'>                <span class="n">q</span><span class="p">.</span><span class="n">push</span><span class="p">({</span><span class="n">e</span><span class="p">.</span><span class="n">second</span> <span class="o">+</span> <span class="n">v</span><span class="p">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">e</span><span class="p">.</span><span class="n">first</span><span class="p">,</span> <span class="n">v</span><span class="p">.</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">});</span>
+</span><span class='line'>            <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span><span class="o">&amp;</span> <span class="p">[</span><span class="n">to</span><span class="p">,</span> <span class="n">price</span><span class="p">]</span> <span class="o">:</span> <span class="n">g</span><span class="p">[</span><span class="n">from</span><span class="p">])</span> <span class="p">{</span>
+</span><span class='line'>                <span class="n">pq</span><span class="p">.</span><span class="n">push</span><span class="p">({</span><span class="n">price</span> <span class="o">+</span> <span class="n">dis</span><span class="p">,</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">to</span><span class="p">});</span>
 </span><span class='line'>            <span class="p">}</span>
 </span><span class='line'>        <span class="p">}</span>
 </span><span class='line'>
@@ -525,39 +527,55 @@
 <span class='line-number'>33</span>
 <span class='line-number'>34</span>
 <span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
 </pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
 </span><span class='line'><span class="k">public</span><span class="o">:</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">findCheapestPrice</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;&amp;</span> <span class="n">flights</span><span class="p">,</span> <span class="kt">int</span> <span class="n">src</span><span class="p">,</span> <span class="kt">int</span> <span class="n">dst</span><span class="p">,</span> <span class="kt">int</span> <span class="n">K</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;&gt;&gt;</span> <span class="n">g</span><span class="p">;</span> <span class="c1">// pair of {to, price}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span><span class="o">&amp;</span> <span class="nl">f</span> <span class="p">:</span> <span class="n">flights</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">g</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]].</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">findCheapestPrice</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">,</span>
+</span><span class='line'>                          <span class="k">const</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;&amp;</span> <span class="n">flights</span><span class="p">,</span>
+</span><span class='line'>                          <span class="kt">int</span> <span class="n">src</span><span class="p">,</span> <span class="kt">int</span> <span class="n">dst</span><span class="p">,</span> <span class="kt">int</span> <span class="n">K</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1">// build graph</span>
+</span><span class='line'>        <span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;&gt;</span> <span class="n">g</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span><span class="o">&amp;</span> <span class="nl">e</span> <span class="p">:</span> <span class="n">flights</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">g</span><span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span> <span class="c1">// from, to, weight</span>
 </span><span class='line'>        <span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'>        <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">distTo</span><span class="p">(</span><span class="n">n</span><span class="p">);</span>
-</span><span class='line'>        <span class="c1">// keep track of </span>
-</span><span class='line'>        <span class="c1">// cur, K, accumulated price</span>
-</span><span class='line'>        <span class="c1">// * K: easy to write the loop without nested while</span>
-</span><span class='line'>        <span class="c1">// * accumulated price: we have to track this because K limitation</span>
-</span><span class='line'>        <span class="c1">//   and cannot do greedy updates</span>
-</span><span class='line'>        <span class="n">queue</span><span class="o">&lt;</span><span class="n">tuple</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;&gt;</span> <span class="n">q</span><span class="p">;</span>
-</span><span class='line'>        <span class="n">q</span><span class="p">.</span><span class="n">push</span><span class="p">({</span><span class="n">src</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="mi">0</span><span class="p">});</span>
+</span><span class='line'>        <span class="c1">// SPFA</span>
+</span><span class='line'>        <span class="c1">// setup</span>
+</span><span class='line'>        <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">distTo</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">INT_MAX</span><span class="p">);</span>
+</span><span class='line'>        <span class="c1">// vector&lt;char&gt; inQueue(n, false);  -&gt; optional optimization</span>
+</span><span class='line'>        <span class="n">queue</span><span class="o">&lt;</span><span class="n">tuple</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;&gt;</span> <span class="n">q</span><span class="p">;</span>   <span class="c1">// cur, K, acc</span>
 </span><span class='line'>
-</span><span class='line'>        <span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">q</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1">// init</span>
+</span><span class='line'>        <span class="n">q</span><span class="p">.</span><span class="n">push</span><span class="p">({</span><span class="n">src</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="mi">0</span><span class="p">});</span>
+</span><span class='line'>        <span class="c1">// inQueue[src] = true;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">q</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
 </span><span class='line'>            <span class="k">auto</span> <span class="p">[</span><span class="n">cur</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">acc</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span><span class="p">.</span><span class="n">front</span><span class="p">();</span>
 </span><span class='line'>            <span class="n">q</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
+</span><span class='line'>            <span class="c1">// inQueue[src] = false;</span>
 </span><span class='line'>
-</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">k</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="k">continue</span><span class="p">;</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">k</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>  <span class="c1">// k stop, k+1 edges</span>
+</span><span class='line'>                <span class="k">continue</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'>            <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span><span class="o">&amp;</span> <span class="p">[</span><span class="n">to</span><span class="p">,</span> <span class="n">price</span><span class="p">]</span> <span class="o">:</span> <span class="n">g</span><span class="p">[</span><span class="n">cur</span><span class="p">])</span> <span class="p">{</span>
-</span><span class='line'>                <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">distTo</span><span class="p">[</span><span class="n">to</span><span class="p">]</span> <span class="o">||</span> <span class="n">distTo</span><span class="p">[</span><span class="n">to</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">price</span> <span class="o">+</span> <span class="n">acc</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>                    <span class="n">distTo</span><span class="p">[</span><span class="n">to</span><span class="p">]</span> <span class="o">=</span> <span class="n">price</span> <span class="o">+</span> <span class="n">acc</span><span class="p">;</span>
-</span><span class='line'>                    <span class="n">q</span><span class="p">.</span><span class="n">push</span><span class="p">({</span><span class="n">to</span><span class="p">,</span> <span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">distTo</span><span class="p">[</span><span class="n">to</span><span class="p">]});</span>
+</span><span class='line'>            <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span><span class="o">&amp;</span> <span class="p">[</span><span class="n">to</span><span class="p">,</span> <span class="n">weight</span><span class="p">]</span> <span class="o">:</span> <span class="n">g</span><span class="p">[</span><span class="n">cur</span><span class="p">])</span> <span class="p">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="p">(</span><span class="n">distTo</span><span class="p">[</span><span class="n">to</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">acc</span> <span class="o">+</span> <span class="n">weight</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                    <span class="n">distTo</span><span class="p">[</span><span class="n">to</span><span class="p">]</span> <span class="o">=</span> <span class="n">acc</span> <span class="o">+</span> <span class="n">weight</span><span class="p">;</span>
+</span><span class='line'>                    <span class="c1">// if (!inQueue[to]) {</span>
+</span><span class='line'>                        <span class="n">q</span><span class="p">.</span><span class="n">push</span><span class="p">({</span><span class="n">to</span><span class="p">,</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">acc</span> <span class="o">+</span> <span class="n">weight</span><span class="p">});</span>
+</span><span class='line'>                    <span class="c1">// }</span>
 </span><span class='line'>                <span class="p">}</span>
 </span><span class='line'>            <span class="p">}</span>
 </span><span class='line'>        <span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'>        <span class="k">return</span> <span class="n">distTo</span><span class="p">[</span><span class="n">dst</span><span class="p">]</span> <span class="o">?</span> <span class="n">distTo</span><span class="p">[</span><span class="n">dst</span><span class="p">]</span> <span class="o">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">distTo</span><span class="p">[</span><span class="n">dst</span><span class="p">]</span> <span class="o">==</span> <span class="n">INT_MAX</span> <span class="o">?</span> <span class="o">-</span><span class="mi">1</span> <span class="o">:</span> <span class="n">distTo</span><span class="p">[</span><span class="n">dst</span><span class="p">];</span>
 </span><span class='line'>    <span class="p">}</span>
 </span><span class='line'><span class="p">};</span>
 </span></code></pre></td></tr></table></div></figure>

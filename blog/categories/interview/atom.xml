@@ -4,7 +4,7 @@
   <title><![CDATA[Category: interview | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/interview/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-03-03T22:20:57-08:00</updated>
+  <updated>2019-03-03T22:54:18-08:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -207,32 +207,33 @@ public:
     };
 
 public:
-    int findCheapestPrice(int n, vector&lt;vector&lt;int&gt;&gt;&amp; flights, int src, int dst, int K) {
-        unordered_map&lt;int, unordered_map&lt;int, int&gt;&gt; adjList;
-
-        for (const auto&amp; flight : flights) {
-            adjList[flight[0]][flight[1]] = flight[2];
+    int findCheapestPriceDijk(int n,
+                          const vector&lt;vector&lt;int&gt;&gt;&amp; flights,
+                          int src, int dst, int K) {
+        // build graph
+        unordered_map&lt;int, unordered_map&lt;int, int&gt;&gt; g;
+        for (const auto&amp; e : flights) {
+            g[e[0]][e[1]] = e[2]; // from, to, weight
         }
 
-        priority_queue&lt;V, vector&lt;V&gt;, function&lt;bool(const V&amp;, const V&amp;)&gt;&gt; q(
-            [](const V&amp; left, const V&amp; right) { return left.dist &gt; right.dist;});
+        // tracker
+        vector&lt;int&gt; pathTo(n);
 
-        q.push({0, src, K});
+        // Dijkstra
+        using T = tuple&lt;int, int, int&gt;;
+        priority_queue&lt;T, vector&lt;T&gt;, greater&lt;T&gt;&gt; pq;  // dis, k, cur
+        pq.push({0, K, src});
+        pathTo[src] = -1;
 
-        while(!q.empty()) {
-            V v = q.top();
-            q.pop();
+        while (!pq.empty()) {
+            auto [dis, k, from] = pq.top();
+            pq.pop();
 
-            if (v.k &lt; -1) {
-                continue;
-            }
+            if (k &lt; -1) continue;
+            if (from == dst) return dis;
 
-            if (v.index == dst) {
-                return v.dist;
-            }
-
-            for (const auto&amp; e : adjList[v.index]) {
-                q.push({e.second + v.dist, e.first, v.k-1});
+            for (const auto&amp; [to, price] : g[from]) {
+                pq.push({price + dis, k - 1, to});
             }
         }
 
@@ -295,37 +296,45 @@ public:
 
 <pre><code class="c++">class Solution {
 public:
-    int findCheapestPrice(int n, vector&lt;vector&lt;int&gt;&gt;&amp; flights, int src, int dst, int K) {
-        unordered_map&lt;int, vector&lt;pair&lt;int, int&gt;&gt;&gt; g; // pair of {to, price}
-
-        for (const auto&amp; f : flights) {
-            g[f[0]].emplace_back(f[1], f[2]);
+    int findCheapestPrice(int n,
+                          const vector&lt;vector&lt;int&gt;&gt;&amp; flights,
+                          int src, int dst, int K) {
+        // build graph
+        unordered_map&lt;int, unordered_map&lt;int, int&gt;&gt; g;
+        for (const auto&amp; e : flights) {
+            g[e[0]][e[1]] = e[2]; // from, to, weight
         }
 
-        vector&lt;int&gt; distTo(n);
-        // keep track of 
-        // cur, K, accumulated price
-        // * K: easy to write the loop without nested while
-        // * accumulated price: we have to track this because K limitation
-        //   and cannot do greedy updates
-        queue&lt;tuple&lt;int, int, int&gt;&gt; q;
-        q.push({src, K, 0});
+        // SPFA
+        // setup
+        vector&lt;int&gt; distTo(n, INT_MAX);
+        // vector&lt;char&gt; inQueue(n, false);  -&gt; optional optimization
+        queue&lt;tuple&lt;int, int, int&gt;&gt; q;   // cur, K, acc
 
-        while(!q.empty()) {
+        // init
+        q.push({src, K, 0});
+        // inQueue[src] = true;
+
+        while (!q.empty()) {
             auto [cur, k, acc] = q.front();
             q.pop();
+            // inQueue[src] = false;
 
-            if (k &lt; 0) continue;
+            if (k &lt; 0) {  // k stop, k+1 edges
+                continue;
+            }
 
-            for (const auto&amp; [to, price] : g[cur]) {
-                if (!distTo[to] || distTo[to] &gt; price + acc) {
-                    distTo[to] = price + acc;
-                    q.push({to, k-1, distTo[to]});
+            for (const auto&amp; [to, weight] : g[cur]) {
+                if (distTo[to] &gt; acc + weight) {
+                    distTo[to] = acc + weight;
+                    // if (!inQueue[to]) {
+                        q.push({to, k - 1, acc + weight});
+                    // }
                 }
             }
         }
 
-        return distTo[dst] ? distTo[dst] : -1;
+        return distTo[dst] == INT_MAX ? -1 : distTo[dst];
     }
 };
 </code></pre>
