@@ -3,7 +3,7 @@ layout: post
 title: "5. Kth Largest Element (快排之思)"
 date: 2018-04-01 14:23:39 -0700
 comments: true
-categories: [interview, lintcode]
+categories: [interview, lintcode, quick sort, partition]
 ---
 
 起因源于我与同事争论，find kth largest element是O(n)的复杂度还是O(nlogn) 。我一直认为find kth largest element 最优解与快排同源，所以应该是O(nlogn)，事实证明我是错的，实际的解法是快速选择，O(n)最优情况，O(n^2)最差情况。

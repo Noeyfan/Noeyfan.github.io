@@ -3,7 +3,7 @@ layout: post
 title: "919. Meeting Rooms II"
 date: 2018-03-21 22:24:39 -0700
 comments: true
-categories: [interview, lintcode]
+categories: [interview, lintcode, array]
 ---
 考察Interval intersection, 一次遍历内解决问题和多维数组一直是我的弱项。
 

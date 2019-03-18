@@ -3,7 +3,7 @@ layout: post
 title: "736. Parse Lisp Expression"
 date: 2018-03-11 21:46:05 -0700
 comments: true
-categories: interview
+categories: [interview, leetcode, dfs, dp]
 ---
 https://leetcode.com/problems/parse-lisp-expression/description/
 

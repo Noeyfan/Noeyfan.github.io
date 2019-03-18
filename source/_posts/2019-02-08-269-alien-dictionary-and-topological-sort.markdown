@@ -3,7 +3,7 @@ layout: post
 title: "269. Alien Dictionary and Topological Sort"
 date: 2019-02-08 23:42:37 -0800
 comments: true
-categories: [interview, leetcode]
+categories: [interview, leetcode, toposort]
 ---
 
 好久没碰到过拓扑排序的题目了，今天突然写到，花了4个小时 :( 这题的难点在于，找到它和拓扑排序的关系，以及如何构建graph.

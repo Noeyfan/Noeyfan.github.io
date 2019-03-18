@@ -3,7 +3,7 @@ layout: post
 title: "774. Minimize Max Distance to Gas Station"
 date: 2018-05-09 22:25:00 -0700
 comments: true
-categories: [interview, leetcode]
+categories: [interview, leetcode, priority_queue]
 ---
 https://leetcode.com/problems/minimize-max-distance-to-gas-station
 
