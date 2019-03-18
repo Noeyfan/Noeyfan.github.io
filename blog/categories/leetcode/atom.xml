@@ -4,7 +4,7 @@
   <title><![CDATA[Category: leetcode | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/leetcode/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-03-17T17:39:35-07:00</updated>
+  <updated>2019-03-17T18:10:24-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -12,6 +12,84 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Task Scheduler with Gaps]]></title>
+    <link href="http://fyou.me/blog/2019/03/17/task-scheduler-with-gaps/"/>
+    <updated>2019-03-17T17:53:38-07:00</updated>
+    <id>http://fyou.me/blog/2019/03/17/task-scheduler-with-gaps</id>
+    <content type="html"><![CDATA[<p><a href="https://leetcode.com/problems/task-scheduler/">https://leetcode.com/problems/task-scheduler/</a></p>
+
+<p><a href="https://leetcode.com/problems/rearrange-string-k-distance-apart/">https://leetcode.com/problems/rearrange-string-k-distance-apart/</a></p>
+
+<p>与一般的Scheduling问题不同，这题要求每个task之间最少间隔<code>x</code> gaps.</p>
+
+<p>做法是priority_queue + greedy (未证明)，以&#8221;AAABBC&#8221;，x=3为例，greedy的过程大致为，从frequency最高的元素开始，依次填空</p>
+
+<ol>
+<li><code>A__A__A__</code></li>
+<li><code>AB_AB_A__</code></li>
+<li><code>ABCAB_A__</code> (注意trailing idle time是不需要的)</li>
+</ol>
+
+
+<p>所以最终的结果是<code>ABCAB_A</code>= <code>7</code></p>
+
+<p>Implementation 复杂度为</p>
+
+<pre><code class="c++">class Solution {
+public:
+    int leastInterval(vector&lt;char&gt;&amp; tasks, int n) {
+        unordered_map&lt;char, int&gt; taskCounts;
+        priority_queue&lt;int&gt; taskQ;
+
+        // O(t) count
+        for (auto t : tasks) {
+            ++taskCounts[t];
+        }
+
+        // O(tlogt) insert
+        for (auto [t, freq]: taskCounts) {
+            taskQ.push(freq);
+        }
+
+        int cycle = 0;
+        while (!taskQ.empty()) {
+            vector&lt;int&gt; remainingTasks;
+
+            int idle = 0;
+            int gaps = n;
+            // note while (--i) and while (i--) executes different times
+            // * while (--i) i-1 times
+            // * while (i--) i   times
+            while (gaps-- &gt;= 0) {
+                if (!taskQ.empty()) {
+                    remainingTasks.push_back(taskQ.top());
+                    taskQ.pop(); 
+                    ++cycle;
+                } else {
+                    ++idle;
+                }
+            }
+
+            for (auto tf : remainingTasks) {
+                if (--tf &gt; 0) {
+                    taskQ.push(tf);
+                }
+            }
+
+            if (!taskQ.empty()) {
+                // to avoid trailing idle time
+                cycle += idle;
+            }
+        }
+
+        return cycle;
+    }
+};
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[324.Wiggle Sort II and Dutch National Flag Problem]]></title>
@@ -439,98 +517,6 @@ int minMaxDist(const vector&lt;int&gt;&amp; v, int k) {
 <li>只关注最后的最大距离，并不关心每个gas station插在了哪里。</li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[736. Parse Lisp Expression]]></title>
-    <link href="http://fyou.me/blog/2018/03/11/736-parse-lisp-expression/"/>
-    <updated>2018-03-11T21:46:05-07:00</updated>
-    <id>http://fyou.me/blog/2018/03/11/736-parse-lisp-expression</id>
-    <content type="html"><![CDATA[<p><a href="https://leetcode.com/problems/parse-lisp-expression/description/">https://leetcode.com/problems/parse-lisp-expression/description/</a></p>
-
-<p>(很喜欢leetcode里的这个解法，故此记录一下，不太喜欢的是使用了deque存symbol table，如果直接用map作为递归参数会更好。)</p>
-
-<p>解法用了top-down parsing，用getToken和++pos来consume token，优先处理add/mult的简单情况，然后处理let，逻辑清晰，值得学些。</p>
-
-<pre><code class="c++">class Solution {
-public:
-    int evaluate(string expression) {
-        scopes_.clear();
-        int pos = 0;
-        return eval(expression, pos);
-    }
-private:
-    int eval(const string&amp; s, int&amp; pos) {
-        scopes_.push_front(unordered_map&lt;string, int&gt;());
-        int value = 0; // The return value of current expr
-        if (s[pos] == '(') ++pos;
-
-        // command, variable or number
-        const string token = getToken(s, pos);
-
-        if (token == "add") {
-            int v1 = eval(s, ++pos);
-            int v2 = eval(s, ++pos);
-            value = v1 + v2;
-        } else if (token == "mult") {
-            int v1 = eval(s, ++pos);
-            int v2 = eval(s, ++pos);
-            value = v1 * v2;
-        } else if (token == "let") {
-            string var;
-            // expecting " var1 exp1 var2 exp2 ... last_expr)"
-            while (s[pos] != ')') {
-                ++pos;
-                // Must be last_expr
-                if (s[pos] == '(') {
-                    value = eval(s, ++pos);
-                    break;
-                }
-                // Get a token, could be "x" or "-12" for last_expr
-                var = getToken(s, pos);
-                // End of let, var is last_expr
-                if (s[pos] == ')') {
-                    if (isalpha(var[0]))
-                        value = getValue(var);
-                    else
-                        value = stoi(var);
-                    break;
-                }
-                // x -12 -&gt; set x to -12 and store in the current scope and take it as the current return value
-                value = scopes_.front()[var] = eval(s, ++pos);
-            }
-        } else if (isalpha(token[0])) {
-            value = getValue(token); // symbol
-        } else {
-            value = std::stoi(token); // number
-        }
-        if (s[pos] == ')') ++pos;
-        scopes_.pop_front();
-        return value;
-    }
-
-    int getValue(const string&amp; symbol) {
-        for (const auto&amp; scope : scopes_)
-            if (scope.count(symbol)) return scope.at(symbol);
-        return 0;
-    }
-
-    // Get a token from current pos.
-    // "let x" -&gt; "let"
-    // "-12 (add x y)" -&gt; "-12"
-    string getToken(const string&amp; s, int&amp; pos) {
-        string token;
-        while (pos &lt; s.length()) {
-            if (s[pos] == ')' || s[pos] == ' ') break;
-            token += s[pos++];
-        }
-        return token;
-    }
-
-    deque&lt;unordered_map&lt;string, int&gt;&gt; scopes_;
-};
-</code></pre>
 ]]></content>
   </entry>
   

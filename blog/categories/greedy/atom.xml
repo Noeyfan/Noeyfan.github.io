@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: greedy | NOEY]]></title>
+  <link href="http://fyou.me/blog/categories/greedy/atom.xml" rel="self"/>
+  <link href="http://fyou.me/"/>
+  <updated>2019-03-17T18:10:24-07:00</updated>
+  <id>http://fyou.me/</id>
+  <author>
+    <name><![CDATA[Fan You]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Task Scheduler with Gaps]]></title>
+    <link href="http://fyou.me/blog/2019/03/17/task-scheduler-with-gaps/"/>
+    <updated>2019-03-17T17:53:38-07:00</updated>
+    <id>http://fyou.me/blog/2019/03/17/task-scheduler-with-gaps</id>
+    <content type="html"><![CDATA[<p><a href="https://leetcode.com/problems/task-scheduler/">https://leetcode.com/problems/task-scheduler/</a></p>
+
+<p><a href="https://leetcode.com/problems/rearrange-string-k-distance-apart/">https://leetcode.com/problems/rearrange-string-k-distance-apart/</a></p>
+
+<p>与一般的Scheduling问题不同，这题要求每个task之间最少间隔<code>x</code> gaps.</p>
+
+<p>做法是priority_queue + greedy (未证明)，以&#8221;AAABBC&#8221;，x=3为例，greedy的过程大致为，从frequency最高的元素开始，依次填空</p>
+
+<ol>
+<li><code>A__A__A__</code></li>
+<li><code>AB_AB_A__</code></li>
+<li><code>ABCAB_A__</code> (注意trailing idle time是不需要的)</li>
+</ol>
+
+
+<p>所以最终的结果是<code>ABCAB_A</code>= <code>7</code></p>
+
+<p>Implementation 复杂度为</p>
+
+<pre><code class="c++">class Solution {
+public:
+    int leastInterval(vector&lt;char&gt;&amp; tasks, int n) {
+        unordered_map&lt;char, int&gt; taskCounts;
+        priority_queue&lt;int&gt; taskQ;
+
+        // O(t) count
+        for (auto t : tasks) {
+            ++taskCounts[t];
+        }
+
+        // O(tlogt) insert
+        for (auto [t, freq]: taskCounts) {
+            taskQ.push(freq);
+        }
+
+        int cycle = 0;
+        while (!taskQ.empty()) {
+            vector&lt;int&gt; remainingTasks;
+
+            int idle = 0;
+            int gaps = n;
+            // note while (--i) and while (i--) executes different times
+            // * while (--i) i-1 times
+            // * while (i--) i   times
+            while (gaps-- &gt;= 0) {
+                if (!taskQ.empty()) {
+                    remainingTasks.push_back(taskQ.top());
+                    taskQ.pop(); 
+                    ++cycle;
+                } else {
+                    ++idle;
+                }
+            }
+
+            for (auto tf : remainingTasks) {
+                if (--tf &gt; 0) {
+                    taskQ.push(tf);
+                }
+            }
+
+            if (!taskQ.empty()) {
+                // to avoid trailing idle time
+                cycle += idle;
+            }
+        }
+
+        return cycle;
+    }
+};
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

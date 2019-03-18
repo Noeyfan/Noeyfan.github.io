@@ -4,13 +4,142 @@
   <title><![CDATA[NOEY]]></title>
   <link href="http://fyou.me/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-03-17T17:39:35-07:00</updated>
+  <updated>2019-03-17T18:10:24-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
     
   </author>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Task Scheduler with Gaps]]></title>
+    <link href="http://fyou.me/blog/2019/03/17/task-scheduler-with-gaps/"/>
+    <updated>2019-03-17T17:53:38-07:00</updated>
+    <id>http://fyou.me/blog/2019/03/17/task-scheduler-with-gaps</id>
+    <content type="html"><![CDATA[<p><a href="https://leetcode.com/problems/task-scheduler/">https://leetcode.com/problems/task-scheduler/</a></p>
+
+<p><a href="https://leetcode.com/problems/rearrange-string-k-distance-apart/">https://leetcode.com/problems/rearrange-string-k-distance-apart/</a></p>
+
+<p>与一般的Scheduling问题不同，这题要求每个task之间最少间隔<code>x</code> gaps.</p>
+
+<p>做法是priority_queue + greedy (未证明)，以&#8221;AAABBC&#8221;，x=3为例，greedy的过程大致为，从frequency最高的元素开始，依次填空</p>
+
+<ol>
+<li><code>A__A__A__</code></li>
+<li><code>AB_AB_A__</code></li>
+<li><code>ABCAB_A__</code> (注意trailing idle time是不需要的)</li>
+</ol>
+
+
+<p>所以最终的结果是<code>ABCAB_A</code>= <code>7</code></p>
+
+<p>Implementation 复杂度为</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">leastInterval</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;&amp;</span> <span class="n">tasks</span><span class="p">,</span> <span class="kt">int</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">char</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="n">taskCounts</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">priority_queue</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">taskQ</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="c1">// O(t) count</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="nl">t</span> <span class="p">:</span> <span class="n">tasks</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="o">++</span><span class="n">taskCounts</span><span class="p">[</span><span class="n">t</span><span class="p">];</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="c1">// O(tlogt) insert</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">freq</span><span class="p">]</span><span class="o">:</span> <span class="n">taskCounts</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">taskQ</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">freq</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">cycle</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">taskQ</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">remainingTasks</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">idle</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">gaps</span> <span class="o">=</span> <span class="n">n</span><span class="p">;</span>
+</span><span class='line'>              <span class="c1">// note while (--i) and while (i--) executes different times</span>
+</span><span class='line'>              <span class="c1">// * while (--i) i-1 times</span>
+</span><span class='line'>              <span class="c1">// * while (i--) i   times</span>
+</span><span class='line'>            <span class="k">while</span> <span class="p">(</span><span class="n">gaps</span><span class="o">--</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">taskQ</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>                    <span class="n">remainingTasks</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">taskQ</span><span class="p">.</span><span class="n">top</span><span class="p">());</span>
+</span><span class='line'>                    <span class="n">taskQ</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
+</span><span class='line'>                    <span class="o">++</span><span class="n">cycle</span><span class="p">;</span>
+</span><span class='line'>                <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>                    <span class="o">++</span><span class="n">idle</span><span class="p">;</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="nl">tf</span> <span class="p">:</span> <span class="n">remainingTasks</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="p">(</span><span class="o">--</span><span class="n">tf</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                    <span class="n">taskQ</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">taskQ</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>                <span class="c1">// to avoid trailing idle time</span>
+</span><span class='line'>                <span class="n">cycle</span> <span class="o">+=</span> <span class="n">idle</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">cycle</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[324.Wiggle Sort II and Dutch National Flag Problem]]></title>

@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://fyou.me/blog/2019/03/17/task-scheduler-with-gaps/</loc>
+    <lastmod>2019-03-17T17:53:38-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://fyou.me/blog/2019/02/28/324-dot-wiggle-sort-ii-and-dutch-national-flag-problem/</loc>
     <lastmod>2019-02-28T12:16:37-08:00</lastmod>
   </url>
@@ -135,6 +139,9 @@
   </url>
   <url>
     <loc>http://fyou.me/blog/categories/toposort/</loc>
+  </url>
+  <url>
+    <loc>http://fyou.me/blog/categories/greedy/</loc>
   </url>
   <url>
     <loc>http://fyou.me/about/index.html</loc>
