@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: quick sort | NOEY]]></title>
+  <link href="http://fyou.me/blog/categories/quick-sort/atom.xml" rel="self"/>
+  <link href="http://fyou.me/"/>
+  <updated>2019-03-17T17:39:35-07:00</updated>
+  <id>http://fyou.me/</id>
+  <author>
+    <name><![CDATA[Fan You]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[5. Kth Largest Element (快排之思)]]></title>
+    <link href="http://fyou.me/blog/2018/04/01/5-kth-largest-element/"/>
+    <updated>2018-04-01T14:23:39-07:00</updated>
+    <id>http://fyou.me/blog/2018/04/01/5-kth-largest-element</id>
+    <content type="html"><![CDATA[<p>起因源于我与同事争论，find kth largest element是O(n)的复杂度还是O(nlogn) 。我一直认为find kth largest element 最优解与快排同源，所以应该是O(nlogn)，事实证明我是错的，实际的解法是快速选择，O(n)最优情况，O(n<sup>2</sup>)最差情况。</p>
+
+<p>解法都大同小异如下: （我取了中间点作为pivot，最简单的做法是取头或者尾作为pivot）</p>
+
+<pre><code class="c++">class Solution {
+public:
+    int findKthLargest(vector&lt;int&gt;&amp; nums, int k) {
+        return find(nums, 0, nums.size()-1, k);
+    }
+
+    int partition(vector&lt;int&gt;&amp; nums, int begin, int end, int k)
+    {
+        if (begin &gt; end) return -1; // should not happend
+        int p = nums[(end + begin)/2];
+        int i  = begin, j = end;
+        while(i != j)
+        {
+            if (nums[j] &gt; p)
+            {
+                j--;
+            }
+            else if (nums[i] &lt; p)
+            {
+                i++;
+            }
+            else
+            {
+                std::swap(nums[i], nums[j]);
+                if (nums[j] == p) i++; // edge case where after swap if nums[j] == p then we can't --j
+                else j--;
+            }
+        }
+        int diff = end-i+1-k;
+        if (diff == 0)
+        {
+            return nums[i];
+        }
+        else if (diff &gt; 0)
+        {
+            return find(nums,i+1,end,k); // i j are the same anyways
+        }
+        else
+        {
+            return find(nums,begin,j-1,-diff); // i j are the same anyways
+        }
+    }
+};
+</code></pre>
+
+<p>关键在于复杂度的分析。</p>
+
+<h4>快排：</h4>
+
+<p>快排的(average)复杂度之所以为O(nlogn)，因为每次partition需要O(n)，</p>
+
+<p><strong>最差情况：</strong>每次partition正好为<code>[]和[0..n]</code> ，也就是<code>T(n)=T(n-1)+T(0)+O(n) -&gt; T(n)=T(n-1)+O(n)-&gt; T(n)=O(n^2)</code></p>
+
+<p><strong>最优情况：</strong>每次partition正好为<code>[0..n/2-1]和[n/2..n]</code> ，也就是<code>T(n)=2T(n/2)+O(n) -&gt; T(n)=O(nlogn)</code></p>
+
+<p>同时也可以简单理解为最差需要partition O(n)次而最优只需要partition O(logn)次</p>
+
+<h4><strong>快速选择：</strong></h4>
+
+<p>快速选择的(average)复杂度之所以为O(n)，因为每次递归只需要partition整个array的一半，</p>
+
+<p><strong>最差情况：</strong>依旧与快排类似，如果每次pivot都选择了最小或者最大，那么还是需要O(n<sup>2</sup>)去完成整个操作</p>
+
+<p><strong>最优情况：</strong>如果pivot正好选择了中间值，那么<code>T(n)=T(n/2)+O(n) -&gt; T(n)=2O(n) -&gt; T(n)=O(n)</code></p>
+]]></content>
+  </entry>
+  
+</feed>

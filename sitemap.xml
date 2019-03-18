@@ -107,10 +107,34 @@
     <loc>http://fyou.me/blog/categories/stdlibc-plus-plus/</loc>
   </url>
   <url>
+    <loc>http://fyou.me/blog/categories/leetcode/</loc>
+  </url>
+  <url>
+    <loc>http://fyou.me/blog/categories/dfs/</loc>
+  </url>
+  <url>
+    <loc>http://fyou.me/blog/categories/dp/</loc>
+  </url>
+  <url>
     <loc>http://fyou.me/blog/categories/lintcode/</loc>
   </url>
   <url>
-    <loc>http://fyou.me/blog/categories/leetcode/</loc>
+    <loc>http://fyou.me/blog/categories/array/</loc>
+  </url>
+  <url>
+    <loc>http://fyou.me/blog/categories/quick-sort/</loc>
+  </url>
+  <url>
+    <loc>http://fyou.me/blog/categories/partition/</loc>
+  </url>
+  <url>
+    <loc>http://fyou.me/blog/categories/priority-queue/</loc>
+  </url>
+  <url>
+    <loc>http://fyou.me/blog/categories/bfs/</loc>
+  </url>
+  <url>
+    <loc>http://fyou.me/blog/categories/toposort/</loc>
   </url>
   <url>
     <loc>http://fyou.me/about/index.html</loc>

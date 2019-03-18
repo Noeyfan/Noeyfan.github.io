@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: bfs | NOEY]]></title>
+  <link href="http://fyou.me/blog/categories/bfs/atom.xml" rel="self"/>
+  <link href="http://fyou.me/"/>
+  <updated>2019-03-17T17:39:35-07:00</updated>
+  <id>http://fyou.me/</id>
+  <author>
+    <name><![CDATA[Fan You]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[787. Shortest Path with Constraint]]></title>
+    <link href="http://fyou.me/blog/2019/02/02/787-shortest-path-with-constraint/"/>
+    <updated>2019-02-02T13:08:21-08:00</updated>
+    <id>http://fyou.me/blog/2019/02/02/787-shortest-path-with-constraint</id>
+    <content type="html"><![CDATA[<p><a href="https://leetcode.com/problems/cheapest-flights-within-k-stops/">https://leetcode.com/problems/cheapest-flights-within-k-stops/</a></p>
+
+<p>在Weighted DAG里找到src到dst的最短路，且中间经过的点不能超过K. <a href="https://github.com/Noeyfan/CodingPractice/blob/master/leetcode/cheapestFlightsWitinKStopsImproved.cc">Solution with Path Tracking</a></p>
+
+<h5>Dijkstra, 使用priority_queue：</h5>
+
+<p>跟Dijkstra 最短路的思想类似，从src开始，一直往pq里插入所有可能的path，然后greedy的每轮只拿最小的vertice继续往前走，直到找到dst.</p>
+
+<p>由于必须同时满足:</p>
+
+<ul>
+<li>v.k >= -1</li>
+<li>v.index == dst</li>
+</ul>
+
+
+<p>而且一直都用priority_queue找最小的，所以不存在early return的情况。</p>
+
+<p>这个解法有很多的element会被repeatedly insert，memory usage大约到达了第二种解法的两倍! （因为priority_queue不支持decreaseKey operation，所以我们没办法in-place update已经有的key）</p>
+
+<pre><code class="c++">class Solution {
+    struct V {
+        int dist, index, k;
+    };
+
+public:
+    int findCheapestPriceDijk(int n,
+                          const vector&lt;vector&lt;int&gt;&gt;&amp; flights,
+                          int src, int dst, int K) {
+        // build graph
+        unordered_map&lt;int, unordered_map&lt;int, int&gt;&gt; g;
+        for (const auto&amp; e : flights) {
+            g[e[0]][e[1]] = e[2]; // from, to, weight
+        }
+
+        // tracker
+        vector&lt;int&gt; pathTo(n);
+
+        // Dijkstra
+        using T = tuple&lt;int, int, int&gt;;
+        priority_queue&lt;T, vector&lt;T&gt;, greater&lt;T&gt;&gt; pq;  // dis, k, cur
+        pq.push({0, K, src});
+
+        while (!pq.empty()) {
+            auto [dis, k, from] = pq.top();
+            pq.pop();
+
+            if (k &lt; -1) continue;
+            if (from == dst) return dis;
+
+            for (const auto&amp; [to, price] : g[from]) {
+                pq.push({price + dis, k - 1, to});
+            }
+        }
+
+        return -1;
+    }
+};
+</code></pre>
+
+<h5>SPFA, 使用queue:</h5>
+
+<p>SFPA（其实就是BFS!）从src一直往dst找，每轮挪动1，同时一直keep track cheapest，distTo存在的意义就在于cache 已经visited过的vertice (optimize performance)。</p>
+
+<pre><code class="c++">class Solution {
+public:
+    int findCheapestPrice(int n, vector&lt;vector&lt;int&gt;&gt;&amp; flights, int src, int dst, int K) {
+        int cheapest = -1;
+
+        unordered_map&lt;int, unordered_map&lt;int, int&gt;&gt; adj_list;
+        vector&lt;int&gt; distTo(n);
+        distTo[src] = -1;
+
+        for (const auto&amp; flight : flights) {
+            adj_list[flight[0]][flight[1]] = flight[2];
+        }
+
+        // {index, price}
+        queue&lt;pair&lt;int, int&gt;&gt; q;
+        q.push({src, 0});
+
+        while (!q.empty() &amp;&amp; K &gt;= -1 ) {
+            int size = q.size();            
+            while (size-- &gt; 0) {    // concise
+                auto cur = q.front();
+                int index = cur.first, price = cur.second;
+                q.pop();
+
+                if (index == dst) {
+                    cheapest = -1 == cheapest ? price : min(cheapest, price);
+                }
+                else
+                {
+                    for (const auto&amp; e : adj_list[index]) {
+                        if (distTo[e.first] == 0 || distTo[e.first] &gt; e.second + price) {
+                            q.push({e.first, price + e.second});
+                            distTo[e.first] = price + e.second;
+                        }
+                    }
+                }
+            }
+
+            K--;
+        }
+
+        return cheapest;
+    }
+};
+</code></pre>
+
+<h5>SPFA Rev2</h5>
+
+<pre><code class="c++">class Solution {
+public:
+    int findCheapestPrice(int n,
+                          const vector&lt;vector&lt;int&gt;&gt;&amp; flights,
+                          int src, int dst, int K) {
+        // build graph
+        unordered_map&lt;int, unordered_map&lt;int, int&gt;&gt; g;
+        for (const auto&amp; e : flights) {
+            g[e[0]][e[1]] = e[2]; // from, to, weight
+        }
+
+        // SPFA
+        // setup
+        vector&lt;int&gt; distTo(n, INT_MAX);
+        // vector&lt;char&gt; inQueue(n, false);  -&gt; optional optimization
+        queue&lt;tuple&lt;int, int, int&gt;&gt; q;   // cur, K, acc
+
+        // init
+        q.push({src, K, 0});
+        // inQueue[src] = true;
+
+        while (!q.empty()) {
+            auto [cur, k, acc] = q.front();
+            q.pop();
+            // inQueue[src] = false;
+
+            if (k &lt; 0) {  // k stop, k+1 edges
+                continue;
+            }
+
+            for (const auto&amp; [to, weight] : g[cur]) {
+                if (distTo[to] &gt; acc + weight) {
+                    distTo[to] = acc + weight;
+                    // if (!inQueue[to]) {
+                        q.push({to, k - 1, acc + weight});
+                    // }
+                }
+            }
+        }
+
+        return distTo[dst] == INT_MAX ? -1 : distTo[dst];
+    }
+};
+</code></pre>
+
+<h4>Floyd （复杂度高 O(n<sup>3</sup>)）</h4>
+
+<p>基于动态规划的做法。</p>
+
+<h4>Dijkstra（不能处理负环和负边）</h4>
+
+<p>复杂度为<code>O(E*logV)</code></p>
+
+<p>适合dense 和 sparse graph</p>
+
+<p>从这里让我想到了implement 一下Dijkstra。其实跟解法1确实非常相似，但是也有同样的问题就是priority_queue没办法in-place update key。</p>
+
+<p>还有一点不一样的是，Dijkstra没有K的限制，所以可以keep track两个东西:</p>
+
+<ul>
+<li>distTo</li>
+<li>edgeTo</li>
+</ul>
+
+
+<p>然后在插入的时候只有最优解的时候才插入，其他时候直接跳过。（priority_queue的解法则不行，必须得插入所有的元素因为不到找到dst不知道哪个会是最短的）</p>
+
+<p><a href="https://github.com/Noeyfan/noey_algos/blob/master/trivival/dijkstra.cc">Code</a></p>
+
+<h4>Bellman-Ford （都能处理）</h4>
+
+<p>复杂度为<code>O(E*V)</code></p>
+
+<p>不适合dense graph</p>
+
+<h4>SPFA（都能处理，但复杂度不稳定）</h4>
+
+<p>复杂度为<code>O(E*V)</code> in worst case，但是average running time是 <code>O(E)</code>, 可惜并没有办法证明。</p>
+
+<p>不适合dense graph</p>
+
+<p><a href="https://github.com/Noeyfan/noey_algos/blob/master/trivival/spfa.cc">Code</a></p>
+]]></content>
+  </entry>
+  
+</feed>

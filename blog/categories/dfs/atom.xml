@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: leetcode | NOEY]]></title>
-  <link href="http://fyou.me/blog/categories/leetcode/atom.xml" rel="self"/>
+  <title><![CDATA[Category: dfs | NOEY]]></title>
+  <link href="http://fyou.me/blog/categories/dfs/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
   <updated>2019-03-17T17:39:35-07:00</updated>
   <id>http://fyou.me/</id>
@@ -12,169 +12,6 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
-  <entry>
-    <title type="html"><![CDATA[324.Wiggle Sort II and Dutch National Flag Problem]]></title>
-    <link href="http://fyou.me/blog/2019/02/28/324-dot-wiggle-sort-ii-and-dutch-national-flag-problem/"/>
-    <updated>2019-02-28T12:16:37-08:00</updated>
-    <id>http://fyou.me/blog/2019/02/28/324-dot-wiggle-sort-ii-and-dutch-national-flag-problem</id>
-    <content type="html"><![CDATA[<p>一种特殊排序，排完以后要满足奇数位大于左右，偶数位小于左右。</p>
-
-<p><code>nums[0] &lt; nums[1] &gt; nums[2] &lt; nums[3] &gt; nums[4]...</code></p>
-
-<h5>解法一 O(nlogn) time, O(n) space</h5>
-
-<p>将原数组拷贝然后排序，最后从拷贝交叉插入原数组。</p>
-
-<p>值得注意的点在于 <code>j = (n+1)/2</code>的选取，原因是当数组为奇数的时候，选取靠后的index可以避免<code>m</code> underflow.</p>
-
-<pre><code class="c++">class Solution {
-public:
-    void wiggleSort(vector&lt;int&gt;&amp; nums) {
-        vector&lt;int&gt; tmp = nums;
-        int n = nums.size(), m = (n+1)/2, k = n;
-
-        sort(tmp.begin(), tmp.end());
-        for (int i = 0; i &lt; n; ++i) {
-            nums[i] = i &amp; 1 ? tmp[--k] : tmp[--m];
-        }
-    }
-};
-</code></pre>
-
-<h5>解法二 O(n) time, O(n) space</h5>
-
-<p>其实为了得到交叉排序的数组并不需要sort整个数组，只需要将数组一分为二 (按照median 做 partition)，然后再做交叉插入</p>
-
-<pre><code class="c++">class Solution {
-public:
-    void wiggleSort(vector&lt;int&gt;&amp; nums) {
-        if (nums.size() &lt; 2) return;
-
-        int n = nums.size(), m = (n+1)/2;
-        vector&lt;int&gt; copy = nums;
-
-        // find median
-        nth_element(nums.begin(), nums.begin() + m, nums.end());
-        int mid = nums[m];
-
-        threeWay(copy, mid);
-
-        // if odd pick from right partition
-        // if even pick from left partition
-        for (int i = 0; i &lt; nums.size(); ++i) {
-            nums[i] = i &amp; 1 ? copy[--n] : copy[--m];
-        }
-    }
-
-    // https://en.wikipedia.org/wiki/Dutch_national_flag_problem
-    void threeWay(vector&lt;int&gt;&amp; A, int mid) {
-        int i = 0, j = 0, k = A.size() - 1;
-
-        while(j &lt;= k) {
-            if (A[j] &lt; mid) {
-                swap(A[i], A[j]);
-                i++; j++;
-            } else if (A[j] &gt; mid) {
-                swap(A[j], A[k]);
-                k--;
-            } else {
-                j++;
-            }
-        }
-    }
-};
-</code></pre>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[269. Alien Dictionary and Topological Sort]]></title>
-    <link href="http://fyou.me/blog/2019/02/08/269-alien-dictionary-and-topological-sort/"/>
-    <updated>2019-02-08T23:42:37-08:00</updated>
-    <id>http://fyou.me/blog/2019/02/08/269-alien-dictionary-and-topological-sort</id>
-    <content type="html"><![CDATA[<p>好久没碰到过拓扑排序的题目了，今天突然写到，花了4个小时 :( 这题的难点在于，找到它和拓扑排序的关系，以及如何构建graph.</p>
-
-<h5>如何构建graph</h5>
-
-<p>一开始想的有些复杂，其实就是两成对，找到第一个不相同的pair of char，即为graph的一条边</p>
-
-<h5>拓扑排序</h5>
-
-<p>拓扑排序适用于：</p>
-
-<ul>
-<li>多src和dependency的排序</li>
-<li>找graph里是否有环</li>
-</ul>
-
-
-<p>这题正好需要这两点，拓扑排序首先将没有incoming edge的点加入queue中，当queue不为空时，一直循环并update queue里所有点的neighbor的 incoming edge count，如果update之后 count == 0则加入queue中。</p>
-
-<p>如果有环的话那么环中的每个node的incoming edge都永远不会是0，所有最后只要比较一下结果的size是不是包含了所有node，就可以知道有没有环了。</p>
-
-<pre><code class="c++">class Solution {
-public:
-    string mergeOrders(
-        unordered_map&lt;char, unordered_set&lt;char&gt;&gt;&amp; g,
-        unordered_map&lt;char, int&gt;&amp; cnt
-    ) {       
-        queue&lt;char&gt; q;
-
-        for (const auto&amp; [ch, c] : cnt) {
-            if (c == 0) {
-                q.push(ch);
-            }
-        }
-
-        string ret = "";
-        while(!q.empty()) {
-            char c = q.front();
-            q.pop();
-
-            ret += c;
-            for (const auto&amp; e : g[c]) {
-                cnt[e]--;
-                if (cnt[e] == 0) q.push(e);
-            }
-        }
-
-        if (ret.size() != cnt.size()) return "";
-        return ret;
-    }
-
-    string alienOrder(vector&lt;string&gt;&amp; words) {
-        unordered_map&lt;char, unordered_set&lt;char&gt;&gt; g;
-        unordered_map&lt;char, int&gt; cnt;
-
-        for (int i = 0; i &lt; words.size(); ++i) {
-            for (int j = 0; j &lt; words[i].size(); ++j) {
-                cnt[words[i][j]] = 0;
-            }
-        }
-
-        for (int i = 0; i &lt; words.size()-1; ++i) {
-            string&amp; cur = words[i];
-            string&amp; next = words[i+1];
-
-            int limit = min(cur.size(), next.size());
-            for (int j = 0; j &lt; limit; ++j) {
-                if (cur[j] != next[j]) {
-                    if (g[cur[j]].find(next[j]) == g[cur[j]].end()) {
-                        g[cur[j]].insert(next[j]);
-                        cnt[next[j]] += 1;
-                    }
-                    break;
-                }
-            }
-        }
-
-        return mergeOrders(g, cnt);
-    }
-};
-</code></pre>
-]]></content>
-  </entry>
   
   <entry>
     <title type="html"><![CDATA[787. Shortest Path with Constraint]]></title>
@@ -379,70 +216,6 @@ public:
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[774. Minimize Max Distance to Gas Station]]></title>
-    <link href="http://fyou.me/blog/2018/05/09/minimize-max-distance-to-gas-station/"/>
-    <updated>2018-05-09T22:25:00-07:00</updated>
-    <id>http://fyou.me/blog/2018/05/09/minimize-max-distance-to-gas-station</id>
-    <content type="html"><![CDATA[<p><a href="https://leetcode.com/problems/minimize-max-distance-to-gas-station">https://leetcode.com/problems/minimize-max-distance-to-gas-station</a></p>
-
-<p>题意为：给定一些坐标点，表示坐标轴上已有的gas station，同时给定K，表示将要再插入K个gas station，插完以后使gas station之间的最大距离最小。</p>
-
-<p>首先要从离散的点抽象出Interval的概念，其实已有的gas station就是一个个Interval。更为关键的是，这些interval可以视为永远不变，唯一变化的就是他们里边可能插入多少个K。基于这些interval，我们每次选择插入K的时候，只要选择插入当前所有interval中dist最大的那个，一直插入直到它比第二大小为止。插完所有的K，我们就得到了最后的解。</p>
-
-<p>有了以上的理解，一个priority_queue就可以轻易的解决问题，用addK()去update当前interval里的value，然后把update完的top重新插回priority_queue。解法复杂度为O(klogn)</p>
-
-<pre><code class="c++">struct Interval {
-    int length, k, dist;
-
-    Interval(int i) : length(i), k(1), dist(i) {}
-
-    bool operator&lt; (const Interval&amp; other) const {
-        return dist &lt; other.dist;
-    }
-
-    void addK() {
-        k++;
-        dist = length/k;
-    }
-};
-
-priority_queue&lt;Interval&gt; buildQueue(const vector&lt;int&gt;&amp; v) {
-    vector&lt;int&gt; ret(v.size());
-    adjacent_difference(v.begin(), v.end(), ret.begin());
-    ret.erase(ret.begin());
-    return priority_queue&lt;Interval&gt;(ret.begin(), ret.end());
-}
-
-int minMaxDist(const vector&lt;int&gt;&amp; v, int k) {
-    auto pq = buildQueue(v);
-    int maxDist = (v.back() - v.front())/(k+1); // just for optimization
-
-    while(k) {
-        Interval top = pq.top();
-        pq.pop();
-
-        while(pq.top() &lt; top || top.dist &gt; maxDist) {
-            top.addK();
-            k--;
-        }
-        pq.push(top);
-    }
-
-    return pq.top().dist;
-}
-</code></pre>
-
-<p>这题的难点在于正确理解题意并抽象化后找出算法，关键点在于：</p>
-
-<ul>
-<li>由于最早给定的gas station，随着K的插入，变化的并不是interval，而是每个interval内部的dist。</li>
-<li>只关注最后的最大距离，并不关心每个gas station插在了哪里。</li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
     <title type="html"><![CDATA[736. Parse Lisp Expression]]></title>
     <link href="http://fyou.me/blog/2018/03/11/736-parse-lisp-expression/"/>
     <updated>2018-03-11T21:46:05-07:00</updated>
@@ -531,6 +304,183 @@ private:
     deque&lt;unordered_map&lt;string, int&gt;&gt; scopes_;
 };
 </code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[10. Regular Expression Matching]]></title>
+    <link href="http://fyou.me/blog/2017/06/07/regex-matching/"/>
+    <updated>2017-06-07T01:30:00-07:00</updated>
+    <id>http://fyou.me/blog/2017/06/07/regex-matching</id>
+    <content type="html"><![CDATA[<p>准备督促自己刷刷题／打打codejam，保持手感，记录一些难倒过自己的题目，从错误开始到正确思路，（也许）包括一些深入的拓展。</p>
+
+<h4>题目</h4>
+
+<p>第一题就从<a href="https://leetcode.com/problems/regular-expression-matching/">Regular Expression Matching</a>开始好了，简言之写个方法:</p>
+
+<pre><code class="c++">bool isMatch(string s, string regex);
+</code></pre>
+
+<h4>思路</h4>
+
+<p>超简化的Regular Expression Matching，通常只包含：<code>* . [a-Z]</code>几种元素，所以从简单入手分析所有可能的match情形:</p>
+
+<ul>
+<li><code>[a-Z]</code> 和 <code>[a-Z]</code>，属于exact match，只需要关注当前位置</li>
+<li><code>[a-Z]</code> 和 <code>.</code>， 属于any match，与上种情况类似，但是<code>\0</code> 和 <code>.</code> 是不能match的</li>
+<li><code>[a-Z]</code> 和 <code>([a-Z]|.)*</code>，属于repeat match, 也是这题的唯一难点，有两种情况，且可以用DFS暴力解决：
+
+<ul>
+<li><code>*</code> match >=1 次: <code>[a-Z]</code> match <code>[a-Z]|.</code>  &amp;&amp; <code>s+1</code> 也要match <code>regex</code></li>
+<li><code>*</code> match 0 次: <code>s</code> match <code>regex+2</code></li>
+</ul>
+</li>
+</ul>
+
+
+<h4>曾犯错误</h4>
+
+<p>之下都是我在面试或者写题中出现过的错误：</p>
+
+<ul>
+<li>与WildCardMatching混淆，认为一个for loop可以解决（非DP）</li>
+<li>边界情况 <code>""</code> 与 <code>.*</code>的match</li>
+<li>For loop 和DFS 在此处混用，逻辑不清（紧张？？？）</li>
+<li>强行用c++ string 进DFS却又不想用index （<code>string::data() -&gt; const char*</code>）</li>
+<li>没有处理<code>\0</code> 和 <code>.</code> 的情况</li>
+</ul>
+
+
+<p>不怕笑话，试着回忆一些面试写的丑逼代码：</p>
+
+<h5>丑1:</h5>
+
+<pre><code class="c++">bool isMatch(string s, string regex) {
+  if (s.empty() &amp;&amp; regex.empty()) return false;
+  int r_i = 0;
+  for (int i = 0; i &lt; s.size(); ++i) {
+    if (s[i] == regex[r_i]) {
+      return isMatch(s.substr(i), regex.substr(r_i));
+    }
+    if (regex[r_i] == '*') { // should be regex[r_i+1] == '*'
+      return isMatch(s.substr(i+1), regex.substr(r_i-1))
+        || isMatch(s.substr(i), regex.substr(r_i+1));
+    }
+    if (regex[r_i] == '.') {
+      return isMatch(s.substr(i+1), regex.substr(r_i+1));
+    }
+    return false;
+  }
+  return false;
+}
+</code></pre>
+
+<h5>丑2：</h5>
+
+<pre><code class="c++">bool isMatch(string s, string p) {
+  return imp(s.data(), p.data());
+}
+
+bool imp(const char* c, const char* p) {
+    if (*c == '\0' &amp;&amp; *p == '\0') {
+        return true;
+    }
+    if (*p == '\0' || *c == '\0') return false; // ??? patching
+    if (*(p+1) == '*') {
+        return isMatch(c+1, p) || isMatch(c+1, p+2); // should be || isMatch(c, p+2)
+    }
+    if (*c == *p || *p == '.') {  // '\0' and '.'
+        return isMatch(c+1, p+1);
+    }
+    return false;
+}
+</code></pre>
+
+<h4>正确姿势</h4>
+
+<h5>DFS</h5>
+
+<p>算法清晰的情况下，DFS 解法基本等同于直接翻译：</p>
+
+<pre><code class="c++">bool isMatch(string s, string p) {
+  return imp(s.data(), p.data());
+}
+
+bool imp(const char* c, const char* p) {
+    // only when regex reaches the end, *c check make sense
+    if (*p == '\0') return *c == '\0';
+    if (*(p+1) == '*') {
+        return
+          imp(c, p+2)
+          // test if c is end of string then we can safely
+          // recursively call imp(c+1, p)
+          || ((*p == *c || (*c != '\0' &amp;&amp; *p == '.'))
+                &amp;&amp; imp(c+1, p));
+    }
+    if (*c == *p || (*c != '\0' &amp;&amp; *p == '.')) {
+        return imp(c+1, p+1);
+    }
+    return false;
+}
+</code></pre>
+
+<h5>DP</h5>
+
+<p>DP的关键在于构建状态转移矩阵，而此处构建的方法为：令 <code>bool f[i][j]</code>为 <code>s[i-1]</code> match <code>p[j-1]</code> 的情况，然后写出 <code>f[i][j]</code> 与 <code>p[i-1]</code> <code>j[i-1]</code> 的关系，相同<strong>思路</strong>。</p>
+
+<p>其中初始化<code>f[0][j]</code>要有讲究（也就是<code>empty string</code> 与 什么样的<code>regex</code>算matching）。</p>
+
+<p>详细请看代码注释：</p>
+
+<pre><code class="c++">// Copy from Leetcode
+bool isMatch(string s, string p) {
+    /**
+     * f[i][j]: if s[0..i-1] matches p[0..j-1]
+     * if p[j - 1] != '*'
+     *      f[i][j] = f[i - 1][j - 1] &amp;&amp; s[i - 1] == p[j - 1]
+     * if p[j - 1] == '*', denote p[j - 2] with x
+     *      f[i][j] is true iff any of the following is true
+     *      1) "x*" repeats 0 time and matches empty: f[i][j - 2]
+     *      2) "x*" repeats &gt;= 1 times and matches "x*x": s[i - 1] == x &amp;&amp; f[i - 1][j]
+     * '.' matches any single character
+     */
+    int m = s.size(), n = p.size();
+    vector&lt;vector&lt;bool&gt;&gt; f(m + 1, vector&lt;bool&gt;(n + 1, false));
+
+    f[0][0] = true;
+    for (int i = 1; i &lt;= m; i++)
+        f[i][0] = false;
+    // p[0.., j - 3, j - 2, j - 1] matches empty iff p[j - 1] is '*' 
+    // and p[0..j - 3] matches empty
+    for (int j = 1; j &lt;= n; j++)
+        f[0][j] = j &gt; 1 &amp;&amp; '*' == p[j - 1] &amp;&amp; f[0][j - 2];
+
+    for (int i = 1; i &lt;= m; i++)
+        for (int j = 1; j &lt;= n; j++)
+            if (p[j - 1] != '*') {
+                f[i][j] = f[i - 1][j - 1] &amp;&amp; (s[i - 1] == p[j - 1] 
+                                              || '.' == p[j - 1]);
+            }
+            else
+                // p[0] cannot be '*' so no need to check "j &gt; 1" here
+                f[i][j] = f[i][j - 2] || (s[i - 1] == p[j - 2] 
+                                          || '.' == p[j - 2]) &amp;&amp; f[i - 1][j];
+
+    return f[m][n];
+}
+</code></pre>
+
+<h4>拓展</h4>
+
+<ul>
+<li>尝试用NFA解决真正的<code>regex</code>问题，尝试自己土制了一个小 <a href="https://github.com/Noeyfan/noey_algos/blob/master/noey_regex.h">regex lib</a>.</li>
+<li>还有Tim的 <a href="https://gist.github.com/Noeyfan/1c60fa6555f6cdc50fd2f55d78aed8a9">compile time regex (no parsing)</a></li>
+</ul>
+
+
+<h4>相似题目</h4>
+
+<p><code>// placeholder，将遇到的相似题目加入此处</code></p>
 ]]></content>
   </entry>
   
