@@ -1,0 +1,223 @@
+
+<!DOCTYPE HTML>
+<html lang="en-GB">
+<head>
+	<meta charset="utf-8">
+	<title>322. Coin Change and Classic DP  | NOEY</title>
+
+	<meta name="author" content="Fan You">
+
+<meta name="description" content="这题是一道经典dp题，最初在写这题的时候由于使用了backtracking，逻辑混乱不堪，想了一下区分back tracking和dfs的题目： back tracking: 需要列出所有的combination
+dfs: 只需要一个最优解 最直观解法 dfs + memorization ( &hellip;"> <meta name="keywords" content="">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="NOEY" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">NOEY</a></h1>
+<span class="tagline"></span>
+
+
+</header>
+
+	<div id="content" class="inner"><article class="post">
+	<header>
+		<h2 class="title">322. Coin Change and Classic DP</h2>
+		<div class="meta date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-03-23T17:35:31-07:00" pubdate data-updated="true"></time></div>
+	</header>
+	<div class="entry-content"><p>这题是一道经典dp题，最初在写这题的时候由于使用了backtracking，逻辑混乱不堪，想了一下区分back tracking和dfs的题目：</p>
+
+<ul>
+<li>back tracking: 需要列出所有的combination</li>
+<li>dfs: 只需要一个最优解</li>
+</ul>
+
+
+<h4>最直观解法 dfs + memorization (slow but polynomial time)</h4>
+
+<p>没什么好说的就是搜索加memorization.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">coinChange</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">coins</span><span class="p">,</span> <span class="kt">int</span> <span class="n">amount</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="n">cache</span><span class="p">;</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">imp</span><span class="p">(</span><span class="n">coins</span><span class="p">,</span> <span class="n">amount</span><span class="p">,</span> <span class="n">cache</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">result</span> <span class="o">==</span> <span class="n">INT_MAX</span> <span class="o">?</span> <span class="o">-</span><span class="mi">1</span> <span class="o">:</span> <span class="n">result</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">imp</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">coins</span><span class="p">,</span> <span class="kt">int</span> <span class="n">remaining</span><span class="p">,</span> <span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">cache</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">remaining</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">remaining</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="n">INT_MAX</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">cache</span><span class="p">.</span><span class="n">count</span><span class="p">(</span><span class="n">remaining</span><span class="p">))</span> <span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="n">remaining</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">resultMin</span> <span class="o">=</span> <span class="n">INT_MAX</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">coins</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="kt">int</span> <span class="n">curMin</span> <span class="o">=</span> <span class="n">imp</span><span class="p">(</span><span class="n">coins</span><span class="p">,</span> <span class="n">remaining</span><span class="o">-</span><span class="n">coins</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">cache</span><span class="p">);</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">curMin</span> <span class="o">==</span> <span class="n">INT_MAX</span><span class="p">)</span> <span class="k">continue</span><span class="p">;</span>  <span class="c1">// handle overflow</span>
+</span><span class='line'>            <span class="n">resultMin</span> <span class="o">=</span> <span class="n">min</span><span class="p">(</span><span class="n">curMin</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">resultMin</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">cache</span><span class="p">[</span><span class="n">remaining</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultMin</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">resultMin</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>最优解法 dp (O(A * N))</h4>
+
+<p>子问题其实由dfs的解法很容易发现，<code>dp[i] = min(dp[i], dp[i-c] + 1)</code>, c在这里意味着coins里的任何一个。翻译过来就是对于每一个amount的最优解就是当前存下的值或者是拿coins里的某一个c之前的最优值+1。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">coinChange</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">coins</span><span class="p">,</span> <span class="kt">int</span> <span class="n">amount</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">dp</span><span class="p">(</span><span class="n">amount</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">amount</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>  <span class="c1">// use amount+1 to prevent IN_MAX overflow.</span>
+</span><span class='line'>        <span class="n">dp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">amount</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">coins</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                <span class="k">if</span> <span class="p">(</span><span class="n">coins</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                    <span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">min</span><span class="p">(</span><span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dp</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">coins</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">dp</span><span class="p">[</span><span class="n">amount</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">amount</span> <span class="o">?</span> <span class="o">-</span><span class="mi">1</span> <span class="o">:</span> <span class="n">dp</span><span class="p">[</span><span class="n">amount</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+
+</article>
+
+	
+	<div class="share">
+	</div>
+
+
+
+
+<section id="comment">
+    <!--h2 class="title">Comments</h2-->
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+</div>
+	<footer id="footer" class="inner"><footer>
+<div class="about">
+<hr>
+<a href="https://twitter.com/youbuer"><img
+src="https://s.gravatar.com/avatar/34fe2d98d60e35a82cf6d649e1f93a91?s=640"></img></a>
+<h4>Fan You</h4>
+<p><a href="https://twitter.com/youbuer">@fanyou</a>. A programmer in Carnegie
+Mellon University. See My
+<a
+href="https://github.com/Noeyfan">Github</a>, <a href="/portfolio">Portfolio</a>, <a href="/about">Resumé</a>
+and <a href="/blog/">Blog</a>.
+Contact me via <a href="mailto:youfan.noey@gamil.com">e-mail</a>.</p>
+</hr>
+</div>
+
+<div class="copy">
+&copy; 2019
+<a href="http://fyou.me/"></a>
+</footer>
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/hyphenator.js"></script>
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'buertec';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://fyou.me/blog/2019/03/23/322-coin-change-and-classic-dp/';
+        var disqus_url = 'http://fyou.me/blog/2019/03/23/322-coin-change-and-classic-dp/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+</body>
+<script>
+  $(document).ready(function() {
+  // Make images center
+  $('p:has(img)').css('text-align', 'center');
+  });
+</script>
+</html>

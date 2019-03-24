@@ -4,7 +4,7 @@
   <title><![CDATA[Category: greedy | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/greedy/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-03-17T21:37:55-07:00</updated>
+  <updated>2019-03-23T17:56:15-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Task Scheduler with Gaps]]></title>
+    <title type="html"><![CDATA[621. Task Scheduler with Gaps]]></title>
     <link href="http://fyou.me/blog/2019/03/17/task-scheduler-with-gaps/"/>
     <updated>2019-03-17T17:53:38-07:00</updated>
     <id>http://fyou.me/blog/2019/03/17/task-scheduler-with-gaps</id>

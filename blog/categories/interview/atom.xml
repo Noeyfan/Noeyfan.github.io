@@ -4,7 +4,7 @@
   <title><![CDATA[Category: interview | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/interview/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-03-17T21:37:55-07:00</updated>
+  <updated>2019-03-23T17:56:15-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -14,7 +14,74 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Task Scheduler with Gaps]]></title>
+    <title type="html"><![CDATA[322. Coin Change and Classic DP]]></title>
+    <link href="http://fyou.me/blog/2019/03/23/322-coin-change-and-classic-dp/"/>
+    <updated>2019-03-23T17:35:31-07:00</updated>
+    <id>http://fyou.me/blog/2019/03/23/322-coin-change-and-classic-dp</id>
+    <content type="html"><![CDATA[<p>这题是一道经典dp题，最初在写这题的时候由于使用了backtracking，逻辑混乱不堪，想了一下区分back tracking和dfs的题目：</p>
+
+<ul>
+<li>back tracking: 需要列出所有的combination</li>
+<li>dfs: 只需要一个最优解</li>
+</ul>
+
+
+<h4>最直观解法 dfs + memorization (slow but polynomial time)</h4>
+
+<p>没什么好说的就是搜索加memorization.</p>
+
+<pre><code class="c++">class Solution {
+public:
+    int coinChange(vector&lt;int&gt;&amp; coins, int amount) {
+        unordered_map&lt;int, int&gt; cache;
+        int result = imp(coins, amount, cache);
+        return result == INT_MAX ? -1 : result;
+    }
+
+    int imp(vector&lt;int&gt;&amp; coins, int remaining, unordered_map&lt;int, int&gt;&amp; cache) {
+        if (remaining == 0) return 0;
+        if (remaining &lt; 0) return INT_MAX;
+        if (cache.count(remaining)) return cache[remaining];
+
+        int resultMin = INT_MAX;
+        for (int i = 0; i &lt; coins.size(); ++i) {
+            int curMin = imp(coins, remaining-coins[i], cache);
+            if (curMin == INT_MAX) continue;  // handle overflow
+            resultMin = min(curMin+1, resultMin);
+        }
+
+        cache[remaining] = resultMin;
+        return resultMin;
+    }
+};
+</code></pre>
+
+<h4>最优解法 dp (O(A * N))</h4>
+
+<p>子问题其实由dfs的解法很容易发现，<code>dp[i] = min(dp[i], dp[i-c] + 1)</code>, c在这里意味着coins里的任何一个。翻译过来就是对于每一个amount的最优解就是当前存下的值或者是拿coins里的某一个c之前的最优值+1。</p>
+
+<pre><code class="c++">class Solution {
+public:
+    int coinChange(vector&lt;int&gt;&amp; coins, int amount) {
+        vector&lt;int&gt; dp(amount+1, amount+1);  // use amount+1 to prevent IN_MAX overflow.
+        dp[0] = 0;
+        for (int i = 1; i &lt;= amount; ++i) {
+            for (int j = 0; j &lt; coins.size(); ++j) {
+                if (coins[j] &lt;= i) {
+                    dp[i] = min(dp[i], dp[i - coins[j]] + 1);
+                }
+            }
+        }
+
+        return dp[amount] &gt; amount ? -1 : dp[amount];
+    }
+};
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[621. Task Scheduler with Gaps]]></title>
     <link href="http://fyou.me/blog/2019/03/17/task-scheduler-with-gaps/"/>
     <updated>2019-03-17T17:53:38-07:00</updated>
     <id>http://fyou.me/blog/2019/03/17/task-scheduler-with-gaps</id>
@@ -453,70 +520,6 @@ public:
 <p>不适合dense graph</p>
 
 <p><a href="https://github.com/Noeyfan/noey_algos/blob/master/trivival/spfa.cc">Code</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[774. Minimize Max Distance to Gas Station]]></title>
-    <link href="http://fyou.me/blog/2018/05/09/minimize-max-distance-to-gas-station/"/>
-    <updated>2018-05-09T22:25:00-07:00</updated>
-    <id>http://fyou.me/blog/2018/05/09/minimize-max-distance-to-gas-station</id>
-    <content type="html"><![CDATA[<p><a href="https://leetcode.com/problems/minimize-max-distance-to-gas-station">https://leetcode.com/problems/minimize-max-distance-to-gas-station</a></p>
-
-<p>题意为：给定一些坐标点，表示坐标轴上已有的gas station，同时给定K，表示将要再插入K个gas station，插完以后使gas station之间的最大距离最小。</p>
-
-<p>首先要从离散的点抽象出Interval的概念，其实已有的gas station就是一个个Interval。更为关键的是，这些interval可以视为永远不变，唯一变化的就是他们里边可能插入多少个K。基于这些interval，我们每次选择插入K的时候，只要选择插入当前所有interval中dist最大的那个，一直插入直到它比第二大小为止。插完所有的K，我们就得到了最后的解。</p>
-
-<p>有了以上的理解，一个priority_queue就可以轻易的解决问题，用addK()去update当前interval里的value，然后把update完的top重新插回priority_queue。解法复杂度为O(klogn)</p>
-
-<pre><code class="c++">struct Interval {
-    int length, k, dist;
-
-    Interval(int i) : length(i), k(1), dist(i) {}
-
-    bool operator&lt; (const Interval&amp; other) const {
-        return dist &lt; other.dist;
-    }
-
-    void addK() {
-        k++;
-        dist = length/k;
-    }
-};
-
-priority_queue&lt;Interval&gt; buildQueue(const vector&lt;int&gt;&amp; v) {
-    vector&lt;int&gt; ret(v.size());
-    adjacent_difference(v.begin(), v.end(), ret.begin());
-    ret.erase(ret.begin());
-    return priority_queue&lt;Interval&gt;(ret.begin(), ret.end());
-}
-
-int minMaxDist(const vector&lt;int&gt;&amp; v, int k) {
-    auto pq = buildQueue(v);
-    int maxDist = (v.back() - v.front())/(k+1); // just for optimization
-
-    while(k) {
-        Interval top = pq.top();
-        pq.pop();
-
-        while(pq.top() &lt; top || top.dist &gt; maxDist) {
-            top.addK();
-            k--;
-        }
-        pq.push(top);
-    }
-
-    return pq.top().dist;
-}
-</code></pre>
-
-<p>这题的难点在于正确理解题意并抽象化后找出算法，关键点在于：</p>
-
-<ul>
-<li>由于最早给定的gas station，随着K的插入，变化的并不是interval，而是每个interval内部的dist。</li>
-<li>只关注最后的最大距离，并不关心每个gas station插在了哪里。</li>
-</ul>
-
 ]]></content>
   </entry>
   
