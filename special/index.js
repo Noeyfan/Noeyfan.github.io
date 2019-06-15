@@ -18,8 +18,8 @@ function ds(cd, ts) {
     var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
     if (distance < 0) {
-	if (ts == "ts1") return "Find your gift!! It's in our home!";
-	if (ts == "ts2") return "Are you hungry?? 440 Bellevue Way NE, Bellevue, WA 98004 have good stuff waiting for you!!";
+	if (ts == "ts1") return "Good Morning! Time to get dressed up and put on some Make up! Wait, what is that purple box??!!";
+	if (ts == "ts2") return "Navigate to 440 Bellevue Way NE, Bellevue, WA 98004 !";
 	if (ts == "ts3") return "Time pick another strap for your watch!";
 	if (ts == "ts4") return "Movie MIB time!! 4:30@AMC Bellevue";
 	if (ts == "ts5") return "Have birthday cake and make a wish :)";
