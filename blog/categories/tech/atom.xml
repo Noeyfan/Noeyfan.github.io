@@ -4,7 +4,7 @@
   <title><![CDATA[Category: tech | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/tech/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-03-23T17:56:15-07:00</updated>
+  <updated>2019-06-14T19:05:56-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -12,6 +12,388 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Dynamic Configuration System]]></title>
+    <link href="http://fyou.me/blog/2019/05/04/dynamic-configuration-system/"/>
+    <updated>2019-05-04T16:31:01-07:00</updated>
+    <id>http://fyou.me/blog/2019/05/04/dynamic-configuration-system</id>
+    <content type="html"><![CDATA[<h2>Index</h2>
+
+<p>[TOC]</p>
+
+<h2>Overview</h2>
+
+<p>People all like generic software solutions, but as the scale of modern computer system grows larger, there are business logic cannot be avoided in order to handle real world complexity, Tax Rules, Accounting Treatment, Pricing/Deal calculation…</p>
+
+<p>However, write business logic in code was never recommended because it will result in</p>
+
+<ul>
+<li>Hard-to-read code: code are not readable without huge documentation</li>
+<li>Hard-to-test code: code will be tested against specific business and not able to test generically</li>
+<li>Hard-to-change code: change won&rsquo;t be in effective until code deploy and also hard to revert</li>
+<li>Hard-to-analyze data being processed: metrics can not be easily emitted and analyzed</li>
+</ul>
+
+
+<p>Here is where a dynamic configuration system (short for DCS) comes into play and we will see how it solves all these problems.</p>
+
+<h2>Definition</h2>
+
+<p>A DCS abstracts business logics layer from other layer in a readable and testable fashion during runtime, it should generally allow store, edit, update configuration as well as fetch them by certain conditions.</p>
+
+<p>To put it simple, a client of a DCS should be able to</p>
+
+<ul>
+<li>PutConfig: upload configurations containing business logics</li>
+<li>GetConfig: fetch configuration by filters</li>
+<li>ProcessConfig: given inputs, DCS should match against stored config and produce results</li>
+</ul>
+
+
+<p><img src="/Users/fanyou/Downloads/flare.png" alt="flare" /></p>
+
+<h2>Modeling</h2>
+
+<p>Model of a configuration is tightly coupled with its functionality. Here we will only cover the essential functionality of the DCS where new result should be produce by given input and configuration.</p>
+
+<p>e.g. input:</p>
+
+<pre><code>input::
+{
+  attribute_1: value_1
+}
+</code></pre>
+
+<p>and config:</p>
+
+<pre><code>when attribute_1 == value_1, produce attribute_2 = value_2
+</code></pre>
+
+<p>we should get:</p>
+
+<pre><code>{
+  attribute_2: value_2
+}
+</code></pre>
+
+<p>as a response. (The above syntax is <a href="http://amzn.github.io/ion-docs/">ion</a>)</p>
+
+<p>Then its not hard to infer the very basic piece of a configuration is a compose of <code>condition</code> and <code>resulting value</code>. (Lets call it a derivation config) A naive model can look like this:</p>
+
+<pre><code>{
+  condition: {
+    condition: cond,
+  },
+  value: {
+    value: v,
+  }
+}
+</code></pre>
+
+<p>and of course a group of derivation config can be written as:</p>
+
+<pre><code>{
+  conditions: {
+    condition_1: cond_1,
+    condition_2: cond_2,
+    ...
+  },
+  values: {
+    value_1: v_1,
+    value_2: v_2,
+    ...
+  }
+}
+</code></pre>
+
+<p>and multiple conditions are <code>and</code> relationship.</p>
+
+<h2>Storage</h2>
+
+<p>We have the model of derivation configuration now, but how can we store them? A traditional relational database and reference by id? or a document based storage reference by nature key? Let&rsquo;s take a look at both of them.</p>
+
+<h4>Relational</h4>
+
+<table>
+<thead>
+<tr>
+<th> row_id </th>
+<th style="text-align:left;"> config_element_id </th>
+<th> config_data                          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 1      </td>
+<td style="text-align:left;"> 1                 </td>
+<td> {conditions:{c_1, c_2}, value:{v_1}} </td>
+</tr>
+<tr>
+<td> 2      </td>
+<td style="text-align:left;"> 2                 </td>
+<td> {conditions:{c_1,c_2}, value:{v_2}}  </td>
+</tr>
+<tr>
+<td> &hellip;    </td>
+<td style="text-align:left;"> &hellip;               </td>
+<td> &hellip;                                  </td>
+</tr>
+</tbody>
+</table>
+
+
+<p>Benefit of this approach is:</p>
+
+<ul>
+<li>Strong consistency guarantee, much easier to work with in a multi-thread access environment</li>
+</ul>
+
+
+<p>Downside of this approach is: (All come from the persistence identifier!!)</p>
+
+<ul>
+<li>Extra cost to maintain additional id. id is required to be present everywhere in the DCS, big waste of space!!</li>
+<li>Requires additional joins when querying, slow down the access speed!</li>
+<li>Huge pain when it comes to editing the configuration, id has to be carefully handled and matched. (Simple diff doesn&rsquo;t work!)</li>
+<li>Duplicate check can be hard, even though 2 config data is duplicate, we still treat them as different if they have different <code>config_element_id</code></li>
+</ul>
+
+
+<p><strong><em>Despite all those negative thing with relational database and persistence identifier, we will still be using this approach in this article because this has been proven to work in production environment.</em></strong></p>
+
+<h4>NoSql</h4>
+
+<table>
+<thead>
+<tr>
+<th> key                                           </th>
+<th> value </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> condition_1:cond_1/condition_2:cond_2/value_1 </td>
+<td> v_1   </td>
+</tr>
+<tr>
+<td> condition_1:cond_1/condition_2:cond_2/value_2 </td>
+<td> v_2   </td>
+</tr>
+<tr>
+<td> &hellip;                                           </td>
+<td> &hellip;   </td>
+</tr>
+</tbody>
+</table>
+
+
+<p>Benefit of this approach are:</p>
+
+<ul>
+<li>Simpler data model, no separate persistence identifier resulting in faster query speed</li>
+</ul>
+
+
+<p>Downside of this approach are:</p>
+
+<ul>
+<li>Hard to guarantee consistency (Especially in a distributed k-v store, manual distributed lock has to be implemented and maintained by DCS)</li>
+</ul>
+
+
+<h3>In-Memory</h3>
+
+<p>It&rsquo;s expensive to always go back to database and retrieve information for every operation DCS needed. An in-memory representation of configuration is also needed.</p>
+
+<p>The most nature way of storing key-value pair chain is <code>Trie</code>, and that&rsquo;s what we are going to use:</p>
+
+<pre><code>               root
+                |
+           condition_1
+        /                 \
+ cond_3 {value_2: v2}   cond_1 {value_1: v_1}
+                          \
+                          condition_2           
+                            \
+                            cond_2 {value_1: v_1}
+</code></pre>
+
+<p>Is a representation of</p>
+
+<pre><code>{
+  conditions: {
+    condition_1: cond_3,
+    condition_2: cond_2,
+  },
+  values: {
+    value_1: v_1,
+  }
+}
+
+{
+  conditions: {
+    condition_1: cond_1,
+  },
+  values: {
+    value_2: v_2,
+  }
+}
+</code></pre>
+
+<p>Ordering of conditions in tree are guaranteed by alphabetic order by default and is &ldquo;configurable&rdquo; for different tenant of DCS.</p>
+
+<p>To formalize a little bit, a config tree node can be represent as (in haskell)</p>
+
+<pre><code class="haskell">data ConfigElement = ConfigElement
+data Trie = Empty | TrieNode String String ConfigElement [Trie]
+</code></pre>
+
+<h4>S3, Caching and Interning</h4>
+
+<p>In-memory Tree are also not directly built from RDS database because it can take minutes or even ours to load few entire tree, instead, every latest changes are truncated to a snapshot, serialized &amp; compressed to store in S3, 99% of the time, s3 are the storage used to fetch the configuration.</p>
+
+<p>In-memory Tree in DCS are 1 tree per snapshot and that&rsquo;s what DCS keeps in the cache as well. If an entire tree is 4GB, and a typical DCS host has 60GB, only 15 snapshot can be stored at maximum! Request will have a huge latency spike if there is a cache miss. Here comes the idea of interning.</p>
+
+<p>Interning (like String interning) is a technique to share repetitive in-memory object by putting them in a poll. This saves the memory of cache because multiple snapshot shares the same piece of subtree. And DCS calculates repetitive solely based on its hash key.</p>
+
+<h4>Filtering and Indexing</h4>
+
+<p>One interesting thing about fetch configuration in DCS is filter. DCS supports filter that allow access configuration from different dimension. e.g. by config_element_id, by status&hellip;</p>
+
+<p>This means different indexing of the configuration has to be built, there are global index for indexing config_element_id (unique), there are per snapshot index for content key to perform duplicate lookup&hellip;</p>
+
+<p>Keep adding index is also not scalable and interning won&rsquo;t help because different index will likely have very little to share. A DCS might consider using graph based DB to better help with indexing and querying tasks.</p>
+
+<h4>Collapsing Configuration</h4>
+
+<p>TODO</p>
+
+<h4>Tenant Separation</h4>
+
+<p>Muti-tenancy is an important consideration for DCS:</p>
+
+<ul>
+<li>Every config element and operation should be directly or indirectly associated with a tenant and they can be traced from the Database</li>
+<li>Request for DCS should always pass in tenant, and ownership shall validate &amp; approve the request before any operation</li>
+<li>Tenant should be able to easily manage their tenant configuration (e.g. ownership)</li>
+</ul>
+
+
+<h2>Authoring</h2>
+
+<p>Authoring is the process of PutConfig into DCS. Enable parallel editing, bulk editing and consistency model will be the main focus of this section.</p>
+
+<h4>Why not using Git?</h4>
+
+<p>A good question!!! Git treat each line (or even character if you&rsquo;d like) as the lowest granular editing, however our DCS treat a single config element change as the lowest granular editing. They are fundamentally different!! Using git means we cannot use &ldquo;line changes&rdquo; of git directly as &ldquo;config element&rdquo; changes which immediately brings no benefit of using git! Plus, change can be very hard to validate before pushing, traditional pull/rebase/code review/push model won&rsquo;t work because DCS are changing so rapidly and concurrently!!</p>
+
+<p>It then became very obvious that instead of hack Git and trying to put different pieces together, we are better off building our own authoring workflows.</p>
+
+<h4>Change List</h4>
+
+<p>Change list is a list of config elements that represents changes a person is trying to make in DCS.</p>
+
+<table>
+<thead>
+<tr>
+<th> change_list_id </th>
+<th> change_list_revision </th>
+<th> config_element_ids </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 1              </td>
+<td> 1                    </td>
+<td> [1,2,3]            </td>
+</tr>
+<tr>
+<td> 1              </td>
+<td> 2                    </td>
+<td> [4]                </td>
+</tr>
+<tr>
+<td> 2              </td>
+<td> 1                    </td>
+<td> [5,6]              </td>
+</tr>
+</tbody>
+</table>
+
+
+<h4>Work Request</h4>
+
+<p>Work request act as a container for change list. A Work Request can have multiple change list but a Release can only have one work request. A typical WR contains 2 type of change list:</p>
+
+<ul>
+<li>1 Active change list: track changes that has not been released (all updates are write to this change list)</li>
+<li>(0 ~ Many) Change Lists: all change list that has a release associated</li>
+</ul>
+
+
+<p>Concurrent update to work request are guaranteed by optimistic locking mechanism. A work request update always require both change list id and change list revision, if an older revision of change list is being submitted to the database, it will get rejected.</p>
+
+<p>Initially work request were designed to have no revision associated, but as time goes, it became more obvious that add revision to work request can provide better audit history of work request updates and potential work request snapshot for running reproducible tests.</p>
+
+<h4>Snapshot</h4>
+
+<p>Snapshot is an important concept in DCS as it provides a way to represent an immutable set of configurations. This enable audit history of all configuration changes and also point-in-time recovery (or reproduce of the transaction)</p>
+
+<h4>Release Process</h4>
+
+<p>An release process in DCS transform the latest state of DCS from 1 good snapshot to another. The soundness of change are guaranteed during the release process. A typical release workflow contains:</p>
+
+<ul>
+<li>Duplicate check</li>
+<li>Reference check</li>
+<li>Conflict check</li>
+<li>Run test</li>
+<li>Merge or Rebase</li>
+</ul>
+
+
+<p>A DCS cannot be successful without a well defined &amp; executed release process</p>
+
+<p>concurrent release</p>
+
+<p>partial release won&rsquo;t be possible if we used git!!</p>
+
+<h4>Tree Operation</h4>
+
+<h6>Merge</h6>
+
+<h6>Diff</h6>
+
+<h4>Testing</h4>
+
+<p>Test cases are in/out files that can be executed against certain snapshot, they are defined &amp; authored the same way as other configuration in DCS but in a separate namespace.</p>
+
+<p>Testing will be done in a custom test suit which will take care of getting test configuration, convert it to java test cases and then start a in-memory DCS (processing engine) to process test cases.</p>
+
+<h3>Ownership</h3>
+
+<p>Too low granular to use.</p>
+
+<h2>Processing</h2>
+
+<p>Best Match</p>
+
+<p>Execution Context</p>
+
+<p>Namespace</p>
+
+<h2>Analytics</h2>
+
+<p>a separate section dedicate for aggregation.</p>
+
+<h2>Testing</h2>
+
+<h2>Future</h2>
+
+<p>DSL and DCS</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[关于堆分配和栈分配思考以及指针和引用]]></title>
@@ -569,96 +951,6 @@ int main() {
     printf("%d\n", y.inherited.vmt-&gt;access(&amp;y));
 }
 </code></pre>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Github Notes]]></title>
-    <link href="http://fyou.me/blog/2014/10/16/githubnotes/"/>
-    <updated>2014-10-16T14:00:06-07:00</updated>
-    <id>http://fyou.me/blog/2014/10/16/githubnotes</id>
-    <content type="html"><![CDATA[<h3>Normal Usage</h3>
-
-<pre><code>git reset --hard 加上要回滚到的那个hash tag
-
-git init 
-
-git status
-
-git add filename
-
-git add '\*.name'
-
-git log 
-
-git remote add origin https://github.com/try-git/try\_git.git
-
-git push -u origin master  记得加上remote name(origin) 和branch name(master)
-
-git pull  origin master 
-
-git diff HEAD
-
-git add octofamily/octodog.txt
-
-git diff --staged
-
-git reset octofamily/octodog.txt 但是文件还会存在
-
-git checkout -- octocat.txt 回到octocat的last commit时候
-
-git checkout -- octocat.txt 新建clean up branch , 且同时switch to it
-
-git branch 
-
-git rm '\*.txt'
-
-git commit -m ""
-
-git checkout master
-
-git merge clean\_up
-
-git branch -d clean\_up
-
-git push
-</code></pre>
-
-<h3>Bvw Learn</h3>
-
-<pre><code>git clean -f  清除所有untrack的文件
-
-git add -u 添加所有改动文件
-
-git checkout -- &lt;filename&gt; 解除单个文件的改动
-
-git reset 取消add变回untracked file
-</code></pre>
-
-<h3>Stash</h3>
-
-<pre><code>git status 查看那些改动
-
-git stash 将所有改动放进stash
-
-git stash list 看stash里的东西
-
-git checkout -b &lt;branch name&gt; 创建新branch
-
-git stash apply 将所有改动放进去
-
-//在branch 里修改以后回到master进行merge
-
-git checkout master
-
-git merge &lt;branch name&gt;
-
-git branch -d &lt;branch name&gt;
-</code></pre>
-
-<h3>More</h3>
-
-<p><a href="https://help.github.com/articles/adding-an-existing-project-to-github-using-the-command-line/">Add project to github using command line</a></p>
 ]]></content>
   </entry>
   

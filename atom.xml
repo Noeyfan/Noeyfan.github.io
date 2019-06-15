@@ -4,13 +4,453 @@
   <title><![CDATA[NOEY]]></title>
   <link href="http://fyou.me/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-03-23T17:56:15-07:00</updated>
+  <updated>2019-06-14T19:05:56-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
     
   </author>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Dynamic Configuration System]]></title>
+    <link href="http://fyou.me/blog/2019/05/04/dynamic-configuration-system/"/>
+    <updated>2019-05-04T16:31:01-07:00</updated>
+    <id>http://fyou.me/blog/2019/05/04/dynamic-configuration-system</id>
+    <content type="html"><![CDATA[<h2>Index</h2>
+
+<p>[TOC]</p>
+
+<h2>Overview</h2>
+
+<p>People all like generic software solutions, but as the scale of modern computer system grows larger, there are business logic cannot be avoided in order to handle real world complexity, Tax Rules, Accounting Treatment, Pricing/Deal calculation…</p>
+
+<p>However, write business logic in code was never recommended because it will result in</p>
+
+<ul>
+<li>Hard-to-read code: code are not readable without huge documentation</li>
+<li>Hard-to-test code: code will be tested against specific business and not able to test generically</li>
+<li>Hard-to-change code: change won&rsquo;t be in effective until code deploy and also hard to revert</li>
+<li>Hard-to-analyze data being processed: metrics can not be easily emitted and analyzed</li>
+</ul>
+
+
+<p>Here is where a dynamic configuration system (short for DCS) comes into play and we will see how it solves all these problems.</p>
+
+<h2>Definition</h2>
+
+<p>A DCS abstracts business logics layer from other layer in a readable and testable fashion during runtime, it should generally allow store, edit, update configuration as well as fetch them by certain conditions.</p>
+
+<p>To put it simple, a client of a DCS should be able to</p>
+
+<ul>
+<li>PutConfig: upload configurations containing business logics</li>
+<li>GetConfig: fetch configuration by filters</li>
+<li>ProcessConfig: given inputs, DCS should match against stored config and produce results</li>
+</ul>
+
+
+<p><img src="http://fyou.me/Users/fanyou/Downloads/flare.png" alt="flare" /></p>
+
+<h2>Modeling</h2>
+
+<p>Model of a configuration is tightly coupled with its functionality. Here we will only cover the essential functionality of the DCS where new result should be produce by given input and configuration.</p>
+
+<p>e.g. input:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>input::
+</span><span class='line'>{
+</span><span class='line'>  attribute_1: value_1
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and config:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>when attribute_1 == value_1, produce attribute_2 = value_2</span></code></pre></td></tr></table></div></figure>
+
+
+<p>we should get:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  attribute_2: value_2
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>as a response. (The above syntax is <a href="http://amzn.github.io/ion-docs/">ion</a>)</p>
+
+<p>Then its not hard to infer the very basic piece of a configuration is a compose of <code>condition</code> and <code>resulting value</code>. (Lets call it a derivation config) A naive model can look like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  condition: {
+</span><span class='line'>    condition: cond,
+</span><span class='line'>  },
+</span><span class='line'>  value: {
+</span><span class='line'>    value: v,
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and of course a group of derivation config can be written as:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  conditions: {
+</span><span class='line'>    condition_1: cond_1,
+</span><span class='line'>    condition_2: cond_2,
+</span><span class='line'>    ...
+</span><span class='line'>  },
+</span><span class='line'>  values: {
+</span><span class='line'>    value_1: v_1,
+</span><span class='line'>    value_2: v_2,
+</span><span class='line'>    ...
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and multiple conditions are <code>and</code> relationship.</p>
+
+<h2>Storage</h2>
+
+<p>We have the model of derivation configuration now, but how can we store them? A traditional relational database and reference by id? or a document based storage reference by nature key? Let&rsquo;s take a look at both of them.</p>
+
+<h4>Relational</h4>
+
+<table>
+<thead>
+<tr>
+<th> row_id </th>
+<th style="text-align:left;"> config_element_id </th>
+<th> config_data                          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 1      </td>
+<td style="text-align:left;"> 1                 </td>
+<td> {conditions:{c_1, c_2}, value:{v_1}} </td>
+</tr>
+<tr>
+<td> 2      </td>
+<td style="text-align:left;"> 2                 </td>
+<td> {conditions:{c_1,c_2}, value:{v_2}}  </td>
+</tr>
+<tr>
+<td> &hellip;    </td>
+<td style="text-align:left;"> &hellip;               </td>
+<td> &hellip;                                  </td>
+</tr>
+</tbody>
+</table>
+
+
+<p>Benefit of this approach is:</p>
+
+<ul>
+<li>Strong consistency guarantee, much easier to work with in a multi-thread access environment</li>
+</ul>
+
+
+<p>Downside of this approach is: (All come from the persistence identifier!!)</p>
+
+<ul>
+<li>Extra cost to maintain additional id. id is required to be present everywhere in the DCS, big waste of space!!</li>
+<li>Requires additional joins when querying, slow down the access speed!</li>
+<li>Huge pain when it comes to editing the configuration, id has to be carefully handled and matched. (Simple diff doesn&rsquo;t work!)</li>
+<li>Duplicate check can be hard, even though 2 config data is duplicate, we still treat them as different if they have different <code>config_element_id</code></li>
+</ul>
+
+
+<p><strong><em>Despite all those negative thing with relational database and persistence identifier, we will still be using this approach in this article because this has been proven to work in production environment.</em></strong></p>
+
+<h4>NoSql</h4>
+
+<table>
+<thead>
+<tr>
+<th> key                                           </th>
+<th> value </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> condition_1:cond_1/condition_2:cond_2/value_1 </td>
+<td> v_1   </td>
+</tr>
+<tr>
+<td> condition_1:cond_1/condition_2:cond_2/value_2 </td>
+<td> v_2   </td>
+</tr>
+<tr>
+<td> &hellip;                                           </td>
+<td> &hellip;   </td>
+</tr>
+</tbody>
+</table>
+
+
+<p>Benefit of this approach are:</p>
+
+<ul>
+<li>Simpler data model, no separate persistence identifier resulting in faster query speed</li>
+</ul>
+
+
+<p>Downside of this approach are:</p>
+
+<ul>
+<li>Hard to guarantee consistency (Especially in a distributed k-v store, manual distributed lock has to be implemented and maintained by DCS)</li>
+</ul>
+
+
+<h3>In-Memory</h3>
+
+<p>It&rsquo;s expensive to always go back to database and retrieve information for every operation DCS needed. An in-memory representation of configuration is also needed.</p>
+
+<p>The most nature way of storing key-value pair chain is <code>Trie</code>, and that&rsquo;s what we are going to use:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>           root
+</span><span class='line'>            |
+</span><span class='line'>       condition_1
+</span><span class='line'>    /               \
+</span><span class='line'> cond_3 {value_2: v2}   cond_1 {value_1: v_1}
+</span><span class='line'>                      \
+</span><span class='line'>                      condition_2           
+</span><span class='line'>                        \
+</span><span class='line'>                        cond_2 {value_1: v_1}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Is a representation of</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  conditions: {
+</span><span class='line'>    condition_1: cond_3,
+</span><span class='line'>    condition_2: cond_2,
+</span><span class='line'>  },
+</span><span class='line'>  values: {
+</span><span class='line'>    value_1: v_1,
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>{
+</span><span class='line'>  conditions: {
+</span><span class='line'>    condition_1: cond_1,
+</span><span class='line'>  },
+</span><span class='line'>  values: {
+</span><span class='line'>    value_2: v_2,
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ordering of conditions in tree are guaranteed by alphabetic order by default and is &ldquo;configurable&rdquo; for different tenant of DCS.</p>
+
+<p>To formalize a little bit, a config tree node can be represent as (in haskell)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='haskell'><span class='line'><span class="kr">data</span> <span class="kt">ConfigElement</span> <span class="ow">=</span> <span class="kt">ConfigElement</span>
+</span><span class='line'><span class="kr">data</span> <span class="kt">Trie</span> <span class="ow">=</span> <span class="kt">Empty</span> <span class="o">|</span> <span class="kt">TrieNode</span> <span class="kt">String</span> <span class="kt">String</span> <span class="kt">ConfigElement</span> <span class="p">[</span><span class="kt">Trie</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>S3, Caching and Interning</h4>
+
+<p>In-memory Tree are also not directly built from RDS database because it can take minutes or even ours to load few entire tree, instead, every latest changes are truncated to a snapshot, serialized &amp; compressed to store in S3, 99% of the time, s3 are the storage used to fetch the configuration.</p>
+
+<p>In-memory Tree in DCS are 1 tree per snapshot and that&rsquo;s what DCS keeps in the cache as well. If an entire tree is 4GB, and a typical DCS host has 60GB, only 15 snapshot can be stored at maximum! Request will have a huge latency spike if there is a cache miss. Here comes the idea of interning.</p>
+
+<p>Interning (like String interning) is a technique to share repetitive in-memory object by putting them in a poll. This saves the memory of cache because multiple snapshot shares the same piece of subtree. And DCS calculates repetitive solely based on its hash key.</p>
+
+<h4>Filtering and Indexing</h4>
+
+<p>One interesting thing about fetch configuration in DCS is filter. DCS supports filter that allow access configuration from different dimension. e.g. by config_element_id, by status&hellip;</p>
+
+<p>This means different indexing of the configuration has to be built, there are global index for indexing config_element_id (unique), there are per snapshot index for content key to perform duplicate lookup&hellip;</p>
+
+<p>Keep adding index is also not scalable and interning won&rsquo;t help because different index will likely have very little to share. A DCS might consider using graph based DB to better help with indexing and querying tasks.</p>
+
+<h4>Collapsing Configuration</h4>
+
+<p>TODO</p>
+
+<h4>Tenant Separation</h4>
+
+<p>Muti-tenancy is an important consideration for DCS:</p>
+
+<ul>
+<li>Every config element and operation should be directly or indirectly associated with a tenant and they can be traced from the Database</li>
+<li>Request for DCS should always pass in tenant, and ownership shall validate &amp; approve the request before any operation</li>
+<li>Tenant should be able to easily manage their tenant configuration (e.g. ownership)</li>
+</ul>
+
+
+<h2>Authoring</h2>
+
+<p>Authoring is the process of PutConfig into DCS. Enable parallel editing, bulk editing and consistency model will be the main focus of this section.</p>
+
+<h4>Why not using Git?</h4>
+
+<p>A good question!!! Git treat each line (or even character if you&rsquo;d like) as the lowest granular editing, however our DCS treat a single config element change as the lowest granular editing. They are fundamentally different!! Using git means we cannot use &ldquo;line changes&rdquo; of git directly as &ldquo;config element&rdquo; changes which immediately brings no benefit of using git! Plus, change can be very hard to validate before pushing, traditional pull/rebase/code review/push model won&rsquo;t work because DCS are changing so rapidly and concurrently!!</p>
+
+<p>It then became very obvious that instead of hack Git and trying to put different pieces together, we are better off building our own authoring workflows.</p>
+
+<h4>Change List</h4>
+
+<p>Change list is a list of config elements that represents changes a person is trying to make in DCS.</p>
+
+<table>
+<thead>
+<tr>
+<th> change_list_id </th>
+<th> change_list_revision </th>
+<th> config_element_ids </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 1              </td>
+<td> 1                    </td>
+<td> [1,2,3]            </td>
+</tr>
+<tr>
+<td> 1              </td>
+<td> 2                    </td>
+<td> [4]                </td>
+</tr>
+<tr>
+<td> 2              </td>
+<td> 1                    </td>
+<td> [5,6]              </td>
+</tr>
+</tbody>
+</table>
+
+
+<h4>Work Request</h4>
+
+<p>Work request act as a container for change list. A Work Request can have multiple change list but a Release can only have one work request. A typical WR contains 2 type of change list:</p>
+
+<ul>
+<li>1 Active change list: track changes that has not been released (all updates are write to this change list)</li>
+<li>(0 ~ Many) Change Lists: all change list that has a release associated</li>
+</ul>
+
+
+<p>Concurrent update to work request are guaranteed by optimistic locking mechanism. A work request update always require both change list id and change list revision, if an older revision of change list is being submitted to the database, it will get rejected.</p>
+
+<p>Initially work request were designed to have no revision associated, but as time goes, it became more obvious that add revision to work request can provide better audit history of work request updates and potential work request snapshot for running reproducible tests.</p>
+
+<h4>Snapshot</h4>
+
+<p>Snapshot is an important concept in DCS as it provides a way to represent an immutable set of configurations. This enable audit history of all configuration changes and also point-in-time recovery (or reproduce of the transaction)</p>
+
+<h4>Release Process</h4>
+
+<p>An release process in DCS transform the latest state of DCS from 1 good snapshot to another. The soundness of change are guaranteed during the release process. A typical release workflow contains:</p>
+
+<ul>
+<li>Duplicate check</li>
+<li>Reference check</li>
+<li>Conflict check</li>
+<li>Run test</li>
+<li>Merge or Rebase</li>
+</ul>
+
+
+<p>A DCS cannot be successful without a well defined &amp; executed release process</p>
+
+<p>concurrent release</p>
+
+<p>partial release won&rsquo;t be possible if we used git!!</p>
+
+<h4>Tree Operation</h4>
+
+<h6>Merge</h6>
+
+<h6>Diff</h6>
+
+<h4>Testing</h4>
+
+<p>Test cases are in/out files that can be executed against certain snapshot, they are defined &amp; authored the same way as other configuration in DCS but in a separate namespace.</p>
+
+<p>Testing will be done in a custom test suit which will take care of getting test configuration, convert it to java test cases and then start a in-memory DCS (processing engine) to process test cases.</p>
+
+<h3>Ownership</h3>
+
+<p>Too low granular to use.</p>
+
+<h2>Processing</h2>
+
+<p>Best Match</p>
+
+<p>Execution Context</p>
+
+<p>Namespace</p>
+
+<h2>Analytics</h2>
+
+<p>a separate section dedicate for aggregation.</p>
+
+<h2>Testing</h2>
+
+<h2>Future</h2>
+
+<p>DSL and DCS</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[322. Coin Change and Classic DP]]></title>
@@ -3647,35 +4087,6 @@ epoll会把哪个流发生了怎样的I/O事件通知我们。此时我们对这
 <h3>More</h3>
 
 <p><a href="https://help.github.com/articles/adding-an-existing-project-to-github-using-the-command-line/">Add project to github using command line</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Midterm]]></title>
-    <link href="http://fyou.me/blog/2014/10/13/midterm/"/>
-    <updated>2014-10-13T10:14:52-07:00</updated>
-    <id>http://fyou.me/blog/2014/10/13/midterm</id>
-    <content type="html"><![CDATA[<p>一不小心学期就已经过半了，这几天特别的闲反而却莫名的恐惧了起来。从round 0 什么都不会做出来的飞机到round 3独立完成了类似找茬的游戏，时间快的像是高速公路,却又突然被踩住了刹车。经常吐槽遇到了一些不靠谱的队友，回头再看看的时候却又庆幸遇到了这一些可爱的人。</p>
-
-<p>之前博客坏了，一直心情很烦躁感慨很多觉得如果写下来几天几夜也会写不完，结果费劲千辛万苦修好了博客打开新post却又瞬间无话可说。我一直是这么纠结蛋疼三分钟热度的人却一直自诩很能坚持。其实我只是习惯被目标奴役，一旦没事可做的时候就原形毕露。能写两个傻逼Unity小游戏就以为自己了不起了，正好被过来玩的米米又打击一番。颤颤巍巍的打开<em>cc</em>，发现好不容易暑假前弄了点基础又全忘光光了。</p>
-
-<p>在大家都在忙期中考试的时候我难得的在悠闲的码博客，其实也没什么事情要说，就是觉得该写点什么了，至于写的是什么我也不清楚。觉得自己最近脑洞开的太大，不仅思维发散了，灵魂也发散了。记得原来爷爷炫耀他当年枪毙犯人的时候，一枪开过去，犯人应声倒地。通常是真死了，也不乏有个别走火且演技特别好的。爷爷怕他们没死绝，就上去用刀在他们脑子里搅一搅。最近想出了攒钱买车的主义然后天天送外卖，我觉得自己挺天才，但同时觉得自己的脑子也该搅一搅了。</p>
-
-<p>晚上躺床上突然想到了这学期就只剩下两个round了，结束以后大家就会到自己的小房间去了。感觉原来是一大块披萨可以随便吃，结果几刀下去就变成一块一块的了. 我是共产主义党员，对这种事总是特别悲观。3周时间的BVW仿佛每个人都进入了慢动作，慢速不是休假，我喜欢手起刀落的利落，这对我更像一种折磨。</p>
-
-<p>记录两个还能记得的傻逼问题:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>* 用swap完成洗牌
-</span><span class='line'>* 遇到SSL Error When installing rubygems, Unable to pull data from 'https://rubygems.org/ ..... error时候记得要用sudo</span></code></pre></td></tr></table></div></figure>
-
-
-<p>嗯，就这么多了。</p>
-
-<h2>End</h2>
-
-<p><img src="http://fyou.me/images/Pitt_img.JPG" alt="Ops" /></p>
 ]]></content>
   </entry>
   

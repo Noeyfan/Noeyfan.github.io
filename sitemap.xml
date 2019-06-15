@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://fyou.me/blog/2019/05/04/dynamic-configuration-system/</loc>
+    <lastmod>2019-05-04T16:31:01-07:00</lastmod>
+  </url>
+  <url>
     <loc>http://fyou.me/blog/2019/03/23/322-coin-change-and-classic-dp/</loc>
     <lastmod>2019-03-23T17:35:31-07:00</lastmod>
   </url>
@@ -150,6 +154,10 @@
   <url>
     <loc>http://fyou.me/about/index.html</loc>
     <lastmod>2015-10-19T00:27:20-07:00</lastmod>
+  </url>
+  <url>
+    <loc>http://fyou.me/special/index.html</loc>
+    <lastmod>2019-06-14T19:05:42-07:00</lastmod>
   </url>
   <url>
     <loc>http://fyou.me/portfolio/index.html</loc>
