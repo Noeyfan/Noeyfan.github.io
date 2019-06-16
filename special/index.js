@@ -22,7 +22,7 @@ function ds(cd, ts) {
 	if (ts == "ts2") return "Navigate to 440 Bellevue Way NE, Bellevue, WA 98004 !";
 	if (ts == "ts3") return "How can a Gemini girl only have one gift for her birthday? Well, come with me, here is another one!";
 	if (ts == "ts4") return "Movie MIB time!! 4:30@AMC Bellevue";
-	if (ts == "ts5") return "Have birthday cake and make a wish :)";
+	if (ts == "ts5") return "What can be the best way to finish today? How about have your birthday cake and make a wish at Columbia Tower!! hoho!";
     }
 
     return "* * * " + round(days) + "d " + round(hours) + "h " + round(minutes) + "m " + round(seconds) + "s * * *";
