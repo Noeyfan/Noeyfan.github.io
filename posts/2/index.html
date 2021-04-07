@@ -49,7 +49,7 @@ image = new ImageArray(5)
     image[4] = 'p3.JPG'
     image[5] = 'Suika.jpg'
 
-    bucket_len = image.length
+    bucket_len = 60/image.length
     function randomimage() {
         seconds = new Date().getSeconds()
         bucket = Math.floor(seconds / bucket_len)
