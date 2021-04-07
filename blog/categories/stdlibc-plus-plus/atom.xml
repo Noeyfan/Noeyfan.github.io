@@ -4,7 +4,7 @@
   <title><![CDATA[Category: stdlibc++ | NOEY]]></title>
   <link href="http://fyou.me/blog/categories/stdlibc-plus-plus/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-06-16T01:10:09-07:00</updated>
+  <updated>2021-04-06T22:25:12-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[GSoC 2015 小结]]></title>
-    <link href="http://fyou.me/blog/2015/09/06/gsoc2015/"/>
-    <updated>2015-09-06T21:02:53-07:00</updated>
-    <id>http://fyou.me/blog/2015/09/06/gsoc2015</id>
+    <link href="http://fyou.me/blog/2015/09/07/gsoc2015/"/>
+    <updated>2015-09-07T00:02:53-04:00</updated>
+    <id>http://fyou.me/blog/2015/09/07/gsoc2015</id>
     <content type="html"><![CDATA[<p>GSoC 2015 也算是结束了，期间学到了很多，也认识到了很多不足，拖延症患者拖到今天终于决定下笔记录下这一段经历，以便往后温习，吹逼之用。</p>
 
 <h2>Extend shared_ptr to support arrays</h2>
@@ -254,9 +254,9 @@ struct A { static int a; } int A::a = 3; -&gt; struct A {}; int A_a = 3;
   
   <entry>
     <title type="html"><![CDATA[libstdc++ 初窥]]></title>
-    <link href="http://fyou.me/blog/2015/03/28/stdlibc-plus-plus/"/>
-    <updated>2015-03-28T21:02:53-07:00</updated>
-    <id>http://fyou.me/blog/2015/03/28/stdlibc-plus-plus</id>
+    <link href="http://fyou.me/blog/2015/03/29/stdlibc-plus-plus/"/>
+    <updated>2015-03-29T00:02:53-04:00</updated>
+    <id>http://fyou.me/blog/2015/03/29/stdlibc-plus-plus</id>
     <content type="html"><![CDATA[<p>写了两周stdlibc++.纪录点对c++的理解吧.</p>
 
 <h3><a href="http://en.cppreference.com/w/cpp/language/default_constructor">default constructor</a></h3>

@@ -4,7 +4,7 @@
   <title><![CDATA[NOEY]]></title>
   <link href="http://fyou.me/atom.xml" rel="self"/>
   <link href="http://fyou.me/"/>
-  <updated>2019-06-16T01:10:09-07:00</updated>
+  <updated>2021-04-06T22:25:12-07:00</updated>
   <id>http://fyou.me/</id>
   <author>
     <name><![CDATA[Fan You]]></name>
@@ -343,7 +343,7 @@
 
 <h4>Why not using Git?</h4>
 
-<p>A good question!!! Git treat each line (or even character if you&rsquo;d like) as the lowest granular editing, however our DCS treat a single config element change as the lowest granular editing. They are fundamentally different!! Using git means we cannot use &ldquo;line changes&rdquo; of git directly as &ldquo;config element&rdquo; changes which immediately brings no benefit of using git! Plus, change can be very hard to validate before pushing, traditional pull/rebase/code review/push model won&rsquo;t work because DCS are changing so rapidly and concurrently!!</p>
+<p>Git treat each line (or even character if you&rsquo;d like) as the lowest granular editing, however our DCS treat a single config element change as the lowest granular editing. They are fundamentally different!! Using git means we cannot use &ldquo;line changes&rdquo; of git directly as &ldquo;config element&rdquo; changes which immediately brings no benefit of using git! Plus, change can be very hard to validate before pushing, traditional pull/rebase/code review/push model won&rsquo;t work because DCS are changing so rapidly and concurrently!!</p>
 
 <p>It then became very obvious that instead of hack Git and trying to put different pieces together, we are better off building our own authoring workflows.</p>
 
@@ -395,7 +395,14 @@
 
 <h4>Snapshot</h4>
 
-<p>Snapshot is an important concept in DCS as it provides a way to represent an immutable set of configurations. This enable audit history of all configuration changes and also point-in-time recovery (or reproduce of the transaction)</p>
+<p>Snapshot is an important concept in DCS as it provides a way to represent an immutable set of configurations. This enable audit history of all configuration changes and also point-in-time recovery (or reproduce of the transaction). There are 3 types of Snapshot:</p>
+
+<ul>
+<li>Latest Snapshot (aka Base Snapshot or Release Snapshot): track the latest snapshot of a given domain</li>
+<li>Config Update Snapshot: track a snapshot for change list</li>
+<li>Merge Snapshot: containing multiple snapshots and a resolver containing instruction on how to merge them</li>
+</ul>
+
 
 <h4>Release Process</h4>
 
@@ -412,15 +419,56 @@
 
 <p>A DCS cannot be successful without a well defined &amp; executed release process</p>
 
-<p>concurrent release</p>
+<h4>Concurrent release</h4>
 
-<p>partial release won&rsquo;t be possible if we used git!!</p>
+<p>Config Update Snapshot -> Merge Snapshot -> Release Snapshot (Optimistic Locking)-> Latest Snapshot</p>
+
+<p>concurrency were simply handled by an optimistic locking between building release snapshot and promote  as latest snapshot. latest snapshot table are updated by providing domain, release snapshot and latest snapshot. No duplicate revision can be created and that&rsquo;s guaranteed by database transactions which also guarantee the concurrent update to the DCS.</p>
+
+<h4>Rebase</h4>
+
+<p>There are a situation where 2 releases changing different config elements and trying to release at the same time, due to the fact that only 1 snapshot can be marked as live at given time, one of those 2 releases will always fail. However, there is a smarter way we can do to ensure both release success by rerun part of the release workflow (aka. Release process)</p>
+
+<p>Whenever a release fail to be marked as succeeded, DCS will check the error type, if the type is OUT_OF_DATE_BASE_SNAPSHOT, which means there are other release succeeded before this release finishes, a rebase workflow can be kick off.</p>
+
+<p>A rebase workflow essential bypass all the manual approval steps and only run the automated validation/testing steps and then trying to merge in again. However, it&rsquo;s possible for an unlucky release (starving) to keep running rebase workflow and maybe never succeed.</p>
+
+<p>In order to solve release starving problem, preemptive rebase mechanism was introduced, all the pending rebase release will be put in a queue and every release will pre-computes changes that needs rebase base on release ahead of them in the queue. (A new RebaseAttemp object and Preemptive Rebase Workflow is introduced and replaced old rebase workflow)</p>
+
+<h4>Partial release</h4>
+
+<p>partial release is the feature of release only a subset config within the work request. It was originally implemented using a concept of Release Unit, which can be created from path of the tree. A request of partial release will have normal release object plus a specific Release Unit and DCS will figure out what need to be released.</p>
+
+<p>Release Unit soon became a pain because it creates additional layer between change list and release/work request, its both programmatically difficult to figure out relationship between release unit, release and work request and un-intuitive for end user to create a correct Release Unit.</p>
+
+<p>Release Unit based partial release was then deprecated by partial release via raw tree where release request will contain a tree that explicitly describing what should be released.</p>
 
 <h4>Tree Operation</h4>
 
 <h6>Merge</h6>
 
+<p>Merge is a multiple tree operator which can be applied to 2 or more trees. Tree Merger folds the tree one by one and it first creates a conflict tree out of merging trees and then use resolver to transform them back into a normal tree, resolver is required by Tree Merger and sample resolvers are:</p>
+
+<ul>
+<li>last_one_wins: just use the last node seen</li>
+<li>optimistic_locking: ensure right node (CE) must have larger revision than left node, otherwise merge will fail and this is the only resolver that might fail. This is also the default resolver used in release process.</li>
+<li>latest_revision: use the latest dated_released_config_revision</li>
+</ul>
+
+
+<h6>Conflict Resolution</h6>
+
+<p>Conflict happens all the time during release due to optimistic_locking resolver and simultaneously modification of the same config. Conflict Resolution mechanism provides a way for user to get the conflict tree in their release and select side of the tree, manually resolve the conflict and resume the release.</p>
+
+<p>DCS did this by deleting conflicted configs and adding a new config back as user selected. However, this did introduced an interesting bug (and caused a COE). Because the way DCS are adding new configs instead of re-using existing ones to actually &ldquo;resolve&rdquo; the conflict, duplicate configs can easily be added. Someone actually took advantage of this bug and duplicated an entire namespace multiple times!!</p>
+
+<p>This was later fixed by adding duplicate check across the platform but removing existing duplicate is very hard and still on going.</p>
+
 <h6>Diff</h6>
+
+<p>Diff is a dual tree operator which can only be applied to 2 trees. Tree Differ perform a transformation from 2 StandardTree to 1 DiffTree where each node is of type DiffNode and contains a left and right.</p>
+
+<p>Diff tree can be transform to StandardTree again by traversal the tree and select left or right. In fact, config update snapshot should was produce by selection all right side of a Diff tree.</p>
 
 <h4>Testing</h4>
 
@@ -428,23 +476,25 @@
 
 <p>Testing will be done in a custom test suit which will take care of getting test configuration, convert it to java test cases and then start a in-memory DCS (processing engine) to process test cases.</p>
 
+<p>We faced few performance issue where test run are getting extensively slow after sometime. Since we know  testing are CPU-intensive calculation, mostly the focus on optimization were done one CPU. However, it turns out with the increase in test case size, JVM is running out of heap. A lot of CPU cycle was wasted on busy GC. Simple increasing heap size improved the testing time to be 10x faster. (<a href="https://gceasy.io/">gceasy.io</a> was the tool helped a lot)</p>
+
 <h3>Ownership</h3>
 
 <p>Too low granular to use.</p>
 
 <h2>Processing</h2>
 
-<p>Best Match</p>
+<p>I wrote a very basic <a href="https://gist.github.com/Noeyfan/a9f58e2a447e8ed7773c87b6e0400723">haskell program</a> demonstrating how processing against tree works. It basically has a main process function where it loop through each record then try to derive attributes/record. Newly derived record will be directly append to original record list (so the function is not pure and it relies on IonList implementation to work correctly)</p>
 
-<p>Execution Context</p>
+<h4>Best Match</h4>
 
-<p>Namespace</p>
+<h4>Execution Context</h4>
+
+<h4>Namespace</h4>
 
 <h2>Analytics</h2>
 
-<p>a separate section dedicate for aggregation.</p>
-
-<h2>Testing</h2>
+<p>TODO</p>
 
 <h2>Future</h2>
 
@@ -2311,9 +2361,9 @@
   
   <entry>
     <title type="html"><![CDATA[GSoC 2015 小结]]></title>
-    <link href="http://fyou.me/blog/2015/09/06/gsoc2015/"/>
-    <updated>2015-09-06T21:02:53-07:00</updated>
-    <id>http://fyou.me/blog/2015/09/06/gsoc2015</id>
+    <link href="http://fyou.me/blog/2015/09/07/gsoc2015/"/>
+    <updated>2015-09-07T00:02:53-04:00</updated>
+    <id>http://fyou.me/blog/2015/09/07/gsoc2015</id>
     <content type="html"><![CDATA[<p>GSoC 2015 也算是结束了，期间学到了很多，也认识到了很多不足，拖延症患者拖到今天终于决定下笔记录下这一段经历，以便往后温习，吹逼之用。</p>
 
 <h2>Extend shared_ptr to support arrays</h2>
@@ -2627,9 +2677,9 @@
   
   <entry>
     <title type="html"><![CDATA[libstdc++ 初窥]]></title>
-    <link href="http://fyou.me/blog/2015/03/28/stdlibc-plus-plus/"/>
-    <updated>2015-03-28T21:02:53-07:00</updated>
-    <id>http://fyou.me/blog/2015/03/28/stdlibc-plus-plus</id>
+    <link href="http://fyou.me/blog/2015/03/29/stdlibc-plus-plus/"/>
+    <updated>2015-03-29T00:02:53-04:00</updated>
+    <id>http://fyou.me/blog/2015/03/29/stdlibc-plus-plus</id>
     <content type="html"><![CDATA[<p>写了两周stdlibc++.纪录点对c++的理解吧.</p>
 
 <h3><a href="http://en.cppreference.com/w/cpp/language/default_constructor">default constructor</a></h3>
@@ -3078,7 +3128,7 @@
   <entry>
     <title type="html"><![CDATA[面试总结]]></title>
     <link href="http://fyou.me/blog/2015/03/01/epic/"/>
-    <updated>2015-03-01T12:41:09-08:00</updated>
+    <updated>2015-03-01T15:41:09-05:00</updated>
     <id>http://fyou.me/blog/2015/03/01/epic</id>
     <content type="html"><![CDATA[<h3>Epic</h3>
 
@@ -3137,9 +3187,9 @@
   
   <entry>
     <title type="html"><![CDATA[关于堆分配和栈分配思考以及指针和引用]]></title>
-    <link href="http://fyou.me/blog/2014/12/30/heapstack/"/>
-    <updated>2014-12-30T22:33:26-08:00</updated>
-    <id>http://fyou.me/blog/2014/12/30/heapstack</id>
+    <link href="http://fyou.me/blog/2014/12/31/heapstack/"/>
+    <updated>2014-12-31T01:33:26-05:00</updated>
+    <id>http://fyou.me/blog/2014/12/31/heapstack</id>
     <content type="html"><![CDATA[<h4>栈分配</h4>
 
 <p>传统栈分配的例子:</p>
@@ -3228,7 +3278,7 @@ return 出去以后原来的东西就被释放了。</p>
   <entry>
     <title type="html"><![CDATA[对于int64, int32的一点理解]]></title>
     <link href="http://fyou.me/blog/2014/12/30/int/"/>
-    <updated>2014-12-30T11:34:44-08:00</updated>
+    <updated>2014-12-30T14:34:44-05:00</updated>
     <id>http://fyou.me/blog/2014/12/30/int</id>
     <content type="html"><![CDATA[<h3>基本概念</h3>
 
@@ -3298,7 +3348,7 @@ a+1 的地址是&mdash;&ndash;> A + sizeof(T); // 此处是T而不是T*</p>
   <entry>
     <title type="html"><![CDATA[TCP Server-Client 实现]]></title>
     <link href="http://fyou.me/blog/2014/11/24/tcp-prectise/"/>
-    <updated>2014-11-24T19:22:50-08:00</updated>
+    <updated>2014-11-24T22:22:50-05:00</updated>
     <id>http://fyou.me/blog/2014/11/24/tcp-prectise</id>
     <content type="html"><![CDATA[<p>出于练习目的，决定自己实现一遍client-server的基础模型.
 <a href="https://github.com/Noeyfan/crack_code_interview/tree/master/socket">源码</a></p>
@@ -3531,7 +3581,7 @@ epoll会把哪个流发生了怎样的I/O事件通知我们。此时我们对这
   <entry>
     <title type="html"><![CDATA[Function Pointer]]></title>
     <link href="http://fyou.me/blog/2014/11/22/p-thread/"/>
-    <updated>2014-11-22T13:19:47-08:00</updated>
+    <updated>2014-11-22T16:19:47-05:00</updated>
     <id>http://fyou.me/blog/2014/11/22/p-thread</id>
     <content type="html"><![CDATA[<p>今天才知道各各系统的man是不一样的,mac下查man还是上网查把。</p>
 
@@ -3935,7 +3985,7 @@ epoll会把哪个流发生了怎样的I/O事件通知我们。此时我们对这
   <entry>
     <title type="html"><![CDATA[Github Notes]]></title>
     <link href="http://fyou.me/blog/2014/10/16/githubnotes/"/>
-    <updated>2014-10-16T14:00:06-07:00</updated>
+    <updated>2014-10-16T17:00:06-04:00</updated>
     <id>http://fyou.me/blog/2014/10/16/githubnotes</id>
     <content type="html"><![CDATA[<h3>Normal Usage</h3>
 
