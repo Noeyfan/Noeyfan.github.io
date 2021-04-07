@@ -42,16 +42,19 @@ function ImageArray (n) {
     }
 }
 image = new ImageArray(5)
-     image[0] = 'Pitt_img.JPG'
-     image[1] = 'img_3911.jpg'
-     image[2] = 'dsc_9145.jpg'
-     image[3] = 'p1.JPG'
-     image[4] = 'p3.JPG'
-     image[5] = 'Suika.jpg'
-     function randomimage() {
-         image_number = Math.floor(Math.random() * image.length)
-         return(image[image_number])
-     }
+    image[0] = 'Pitt_img.JPG'
+    image[1] = 'img_3911.jpg'
+    image[2] = 'dsc_9145.jpg'
+    image[3] = 'p1.JPG'
+    image[4] = 'p3.JPG'
+    image[5] = 'Suika.jpg'
+
+    bucket_len = image.length
+    function randomimage() {
+        seconds = new Date().getSeconds()
+        bucket = Math.floor(second / bucket_len)
+        return(image[bucket])
+    }
 document.write('<img src="' + imlocation + randomimage() +  '" style="width: 90%; height: 90%"/>');
 //-->
 </script>
