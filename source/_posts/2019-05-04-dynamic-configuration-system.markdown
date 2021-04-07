@@ -35,7 +35,7 @@ To put it simple, a client of a DCS should be able to
 * GetConfig: fetch configuration by filters
 * ProcessConfig: given inputs, DCS should match against stored config and produce results
 
-![flare](/Users/fanyou/Downloads/flare.png)
+![flare](/images/flare.png)
 
 ## Modeling
 
@@ -223,7 +223,7 @@ Authoring is the process of PutConfig into DCS. Enable parallel editing, bulk ed
 
 #### Why not using Git?
 
-A good question!!! Git treat each line (or even character if you'd like) as the lowest granular editing, however our DCS treat a single config element change as the lowest granular editing. They are fundamentally different!! Using git means we cannot use "line changes" of git directly as "config element" changes which immediately brings no benefit of using git! Plus, change can be very hard to validate before pushing, traditional pull/rebase/code review/push model won't work because DCS are changing so rapidly and concurrently!!
+Git treat each line (or even character if you'd like) as the lowest granular editing, however our DCS treat a single config element change as the lowest granular editing. They are fundamentally different!! Using git means we cannot use "line changes" of git directly as "config element" changes which immediately brings no benefit of using git! Plus, change can be very hard to validate before pushing, traditional pull/rebase/code review/push model won't work because DCS are changing so rapidly and concurrently!!
 
 It then became very obvious that instead of hack Git and trying to put different pieces together, we are better off building our own authoring workflows.
 
@@ -250,7 +250,11 @@ Initially work request were designed to have no revision associated, but as time
 
 #### Snapshot
 
-Snapshot is an important concept in DCS as it provides a way to represent an immutable set of configurations. This enable audit history of all configuration changes and also point-in-time recovery (or reproduce of the transaction)
+Snapshot is an important concept in DCS as it provides a way to represent an immutable set of configurations. This enable audit history of all configuration changes and also point-in-time recovery (or reproduce of the transaction). There are 3 types of Snapshot:
+
+* Latest Snapshot (aka Base Snapshot or Release Snapshot): track the latest snapshot of a given domain
+* Config Update Snapshot: track a snapshot for change list
+* Merge Snapshot: containing multiple snapshots and a resolver containing instruction on how to merge them
 
 #### Release Process
 
@@ -264,15 +268,53 @@ An release process in DCS transform the latest state of DCS from 1 good snapshot
 
 A DCS cannot be successful without a well defined & executed release process
 
-concurrent release
+#### Concurrent release
 
-partial release won't be possible if we used git!!
+Config Update Snapshot -> Merge Snapshot -> Release Snapshot (Optimistic Locking)-> Latest Snapshot
+
+concurrency were simply handled by an optimistic locking between building release snapshot and promote  as latest snapshot. latest snapshot table are updated by providing domain, release snapshot and latest snapshot. No duplicate revision can be created and that's guaranteed by database transactions which also guarantee the concurrent update to the DCS.
+
+#### Rebase
+
+There are a situation where 2 releases changing different config elements and trying to release at the same time, due to the fact that only 1 snapshot can be marked as live at given time, one of those 2 releases will always fail. However, there is a smarter way we can do to ensure both release success by rerun part of the release workflow (aka. Release process)
+
+Whenever a release fail to be marked as succeeded, DCS will check the error type, if the type is OUT_OF_DATE_BASE_SNAPSHOT, which means there are other release succeeded before this release finishes, a rebase workflow can be kick off.
+
+A rebase workflow essential bypass all the manual approval steps and only run the automated validation/testing steps and then trying to merge in again. However, it's possible for an unlucky release (starving) to keep running rebase workflow and maybe never succeed.
+
+In order to solve release starving problem, preemptive rebase mechanism was introduced, all the pending rebase release will be put in a queue and every release will pre-computes changes that needs rebase base on release ahead of them in the queue. (A new RebaseAttemp object and Preemptive Rebase Workflow is introduced and replaced old rebase workflow)
+
+####Partial release
+
+partial release is the feature of release only a subset config within the work request. It was originally implemented using a concept of Release Unit, which can be created from path of the tree. A request of partial release will have normal release object plus a specific Release Unit and DCS will figure out what need to be released.
+
+Release Unit soon became a pain because it creates additional layer between change list and release/work request, its both programmatically difficult to figure out relationship between release unit, release and work request and un-intuitive for end user to create a correct Release Unit.
+
+Release Unit based partial release was then deprecated by partial release via raw tree where release request will contain a tree that explicitly describing what should be released.
 
 #### Tree Operation
 
 ###### Merge
 
+Merge is a multiple tree operator which can be applied to 2 or more trees. Tree Merger folds the tree one by one and it first creates a conflict tree out of merging trees and then use resolver to transform them back into a normal tree, resolver is required by Tree Merger and sample resolvers are:
+
+* last_one_wins: just use the last node seen
+* optimistic_locking: ensure right node (CE) must have larger revision than left node, otherwise merge will fail and this is the only resolver that might fail. This is also the default resolver used in release process.
+* latest_revision: use the latest dated_released_config_revision
+
+###### Conflict Resolution
+
+Conflict happens all the time during release due to optimistic_locking resolver and simultaneously modification of the same config. Conflict Resolution mechanism provides a way for user to get the conflict tree in their release and select side of the tree, manually resolve the conflict and resume the release.
+
+DCS did this by deleting conflicted configs and adding a new config back as user selected. However, this did introduced an interesting bug (and caused a COE). Because the way DCS are adding new configs instead of re-using existing ones to actually "resolve" the conflict, duplicate configs can easily be added. Someone actually took advantage of this bug and duplicated an entire namespace multiple times!!
+
+This was later fixed by adding duplicate check across the platform but removing existing duplicate is very hard and still on going.
+
 ###### Diff
+
+Diff is a dual tree operator which can only be applied to 2 trees. Tree Differ perform a transformation from 2 StandardTree to 1 DiffTree where each node is of type DiffNode and contains a left and right.
+
+Diff tree can be transform to StandardTree again by traversal the tree and select left or right. In fact, config update snapshot should was produce by selection all right side of a Diff tree.
 
 #### Testing
 
@@ -280,23 +322,25 @@ Test cases are in/out files that can be executed against certain snapshot, they 
 
 Testing will be done in a custom test suit which will take care of getting test configuration, convert it to java test cases and then start a in-memory DCS (processing engine) to process test cases.
 
+We faced few performance issue where test run are getting extensively slow after sometime. Since we know  testing are CPU-intensive calculation, mostly the focus on optimization were done one CPU. However, it turns out with the increase in test case size, JVM is running out of heap. A lot of CPU cycle was wasted on busy GC. Simple increasing heap size improved the testing time to be 10x faster. ([gceasy.io](https://gceasy.io/) was the tool helped a lot)
+
 ### Ownership
 
 Too low granular to use.
 
 ## Processing
 
-Best Match
+I wrote a very basic [haskell program](https://gist.github.com/Noeyfan/a9f58e2a447e8ed7773c87b6e0400723) demonstrating how processing against tree works. It basically has a main process function where it loop through each record then try to derive attributes/record. Newly derived record will be directly append to original record list (so the function is not pure and it relies on IonList implementation to work correctly)
 
-Execution Context
+#### Best Match
 
-Namespace
+#### Execution Context
+
+#### Namespace
 
 ## Analytics
 
-a separate section dedicate for aggregation.
-
-## Testing
+TODO
 
 ## Future
 

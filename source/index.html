@@ -20,12 +20,10 @@ image = new ImageArray(5)
      image[2] = 'dsc_9145.jpg'
      image[3] = 'p1.JPG'
      image[4] = 'p3.JPG'
-     var rand = 60/image.length
+     image[5] = 'Suika.jpg'
      function randomimage() {
-	 currentdate = new Date()
-	   image_number = currentdate.getSeconds()
-	   image_number = Math.floor(image_number/rand)
-	   return(image[image_number])
+         image_number = Math.floor(Math.random() * image.length)
+         return(image[image_number])
      }
 document.write('<img src="' + imlocation + randomimage() +  '" style="width: 90%; height: 90%"/>');
 //-->

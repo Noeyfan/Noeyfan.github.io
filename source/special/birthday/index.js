@@ -2,7 +2,7 @@ var ts1 = new Date("June 15, 2019 09:11:11");
 var ts2 = new Date("June 15, 2019 11:33:33");
 var ts3 = new Date("June 15, 2019 14:22:22");
 var ts4 = new Date("June 15, 2019 15:28:28");
-var ts5 = new Date("June 15, 2019 19:05:05");
+var ts5 = new Date("June 15, 2019 20:45:05");
 
 function ds(cd, ts) {
     // Get today's date and time
@@ -18,11 +18,11 @@ function ds(cd, ts) {
     var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
     if (distance < 0) {
-	if (ts == "ts1") return "Find your gift!! It's in our home!";
-	if (ts == "ts2") return "Are you hungry?? 440 Bellevue Way NE, Bellevue, WA 98004 have good stuff waiting for you!!";
-	if (ts == "ts3") return "Time pick another strap for your watch!";
+	if (ts == "ts1") return "Good Morning! Time to get dressed up and put on some Make up! Wait, what is that purple box??!!";
+	if (ts == "ts2") return "Navigate to 440 Bellevue Way NE, Bellevue, WA 98004 !";
+	if (ts == "ts3") return "How can a Gemini girl only have one gift for her birthday? Well, come with me, here is another one!";
 	if (ts == "ts4") return "Movie MIB time!! 4:30@AMC Bellevue";
-	if (ts == "ts5") return "Have birthday cake and make a wish :)";
+	if (ts == "ts5") return "The sunset was merely a flush of rose on top of Columbia Tower and star has yet to rise. Close your eyes and make a wish, the best future is waiting for you :)";
     }
 
     return "* * * " + round(days) + "d " + round(hours) + "h " + round(minutes) + "m " + round(seconds) + "s * * *";
