@@ -32,29 +32,22 @@
 	<div id="content" class="inner"><center>
 <script type="text/javascript">
 <!--
-var imlocation = "images/";
-var currentdate = 0;
-var image_number = 0;
-function ImageArray (n) {
-    this.length = n;
-    for (var i =1; i <= n; i++) {
-	this[i] = ' '
-    }
-}
-image = new ImageArray(5)
-    image[0] = 'Pitt_img.JPG'
-    image[1] = 'img_3911.jpg'
-    image[2] = 'dsc_9145.jpg'
-    image[3] = 'p1.JPG'
-    image[4] = 'p3.JPG'
-    image[5] = 'Suika.jpg'
+const imlocation = "images/";
+const image = [
+  'Pitt_img.JPG',
+  'img_3911.jpg',
+  'dsc_9145.jpg',
+  'p1.JPG',
+  'p3.JPG',
+  'Suika.jpg',
+]
 
-    bucket_len = 60/image.length
-    function randomimage() {
-        seconds = new Date().getSeconds()
-        bucket = Math.floor(seconds / bucket_len)
-        return(image[bucket])
-    }
+const bucket_len = 60/image.length
+function randomimage() {
+  const seconds = new Date().getSeconds()
+  const bucket = Math.floor(seconds / bucket_len)
+  return(image[bucket])
+}
 document.write('<img src="' + imlocation + randomimage() +  '" style="width: 90%; height: 90%"/>');
 //-->
 </script>
