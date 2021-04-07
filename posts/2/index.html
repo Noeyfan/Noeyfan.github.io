@@ -52,7 +52,7 @@ image = new ImageArray(5)
     bucket_len = image.length
     function randomimage() {
         seconds = new Date().getSeconds()
-        bucket = Math.floor(second / bucket_len)
+        bucket = Math.floor(seconds / bucket_len)
         return(image[bucket])
     }
 document.write('<img src="' + imlocation + randomimage() +  '" style="width: 90%; height: 90%"/>');
