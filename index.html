@@ -1,104 +1,124 @@
-
-<!DOCTYPE HTML>
-<html lang="en-GB">
+<!doctype html>
+<html lang="en">
 <head>
-	<meta charset="utf-8">
-	<title>fyou.me  | NOEY</title>
-
-	<meta name="author" content="Fan You">
-
-<meta name="description" content=" "> <meta name="keywords" content="">
-
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-
-	<link href="/atom.xml" rel="alternate" title="NOEY" type="application/atom+xml">
-	<link rel="canonical" href="">
-	<link href="/favicon.png" rel="shortcut icon">
-	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d10">
+  <meta name="description" content="Fan You — software engineer, open-source contributor, and builder.">
+  <title>Fan You — Software Engineer</title>
+  <link rel="canonical" href="https://fyou.me/">
+  <link rel="icon" href="/favicon.png">
+  <link rel="alternate" href="/atom.xml" type="application/atom+xml" title="Fan You">
+  <link rel="stylesheet" href="/stylesheets/modern.css">
+  <script src="/javascripts/modern.js" defer></script>
 </head>
-
-
-
 <body>
-	<header id="header" class="inner"><h1><a href="/">NOEY</a></h1>
-<span class="tagline"></span>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="wordmark" href="/" aria-label="Fan You, home">FY<span>.</span></a>
+    <nav aria-label="Primary navigation">
+      <a href="/portfolio/">Work</a>
+      <a href="/blog/">Writing</a>
+      <a href="/about/">About</a>
+      <a class="nav-cta" href="mailto:youfan.noey@gmail.com">Let’s talk</a>
+    </nav>
+  </header>
 
+  <main id="main">
+    <section class="hero">
+      <div class="hero-copy reveal">
+        <p class="eyebrow"><span class="status-dot"></span> Software engineer · Builder</p>
+        <h1>I turn complex systems into <em>clear, useful products.</em></h1>
+        <p class="lede">I’m Fan You, a software engineer with a foundation in systems, open source, and interactive experiences. I care about sturdy engineering and the small details that make software feel effortless.</p>
+        <div class="actions">
+          <a class="button primary" href="/portfolio/">Explore my work <span aria-hidden="true">↗</span></a>
+          <a class="button ghost" href="https://github.com/Noeyfan">GitHub</a>
+        </div>
+      </div>
+      <div class="hero-visual reveal delay-1" aria-label="A selection of Fan You's photography">
+        <figure class="photo-card photo-main">
+          <img src="/images/Pitt_img.JPG" alt="Pittsburgh skyline at dusk" width="1200" height="800">
+          <figcaption>Pittsburgh, PA <span>40.4406° N</span></figcaption>
+        </figure>
+        <div class="signal-card" aria-hidden="true">
+          <span>Currently exploring</span>
+          <strong>Systems × Product</strong>
+          <div class="signal-line"></div>
+        </div>
+      </div>
+    </section>
 
-</header>
+    <section class="marquee" aria-label="Areas of expertise">
+      <div>Distributed systems <span>✦</span> C++ <span>✦</span> Product engineering <span>✦</span> Open source <span>✦</span> Interactive media <span>✦</span> Distributed systems <span>✦</span></div>
+    </section>
 
-	<div id="content" class="inner"><center>
-<script type="text/javascript">
-<!--
-const imlocation = "images/";
-const image = [
-  'Pitt_img.JPG',
-  'img_3911.jpg',
-  'dsc_9145.jpg',
-  'p1.JPG',
-  'p3.JPG',
-  'Suika.jpg',
-]
+    <section class="section featured">
+      <div class="section-heading reveal">
+        <div>
+          <p class="eyebrow">Selected work</p>
+          <h2>Built with curiosity.<br>Shipped with care.</h2>
+        </div>
+        <a class="text-link" href="/portfolio/">View all projects <span>↗</span></a>
+      </div>
+      <div class="project-grid">
+        <a class="project-card project-wide reveal" href="https://github.com/Noeyfan/gcc">
+          <div class="project-number">01</div>
+          <div class="project-art code-art" aria-hidden="true">
+            <span>template&lt;class T&gt;</span>
+            <strong>shared_ptr&lt;T[]&gt;</strong>
+            <i>N3920 · libstdc++</i>
+          </div>
+          <div class="project-copy">
+            <p>Open source · C++</p>
+            <h3>GNU Compiler Collection</h3>
+            <span>Extended libstdc++ with array support for shared_ptr and polymorphic allocators.</span>
+          </div>
+        </a>
+        <a class="project-card reveal delay-1" href="https://github.com/Noeyfan/DistrubutedSystem-15440">
+          <div class="project-number">02</div>
+          <div class="project-art nodes-art" aria-hidden="true">
+            <i></i><i></i><i></i><i></i><span></span><span></span><span></span>
+          </div>
+          <div class="project-copy">
+            <p>Systems · C / Java</p>
+            <h3>Distributed Systems</h3>
+            <span>RPC, caching, concurrency, and elastic infrastructure.</span>
+          </div>
+        </a>
+        <a class="project-card reveal" href="https://github.com/Noeyfan/Dolls/tree/master/PsychoKiller">
+          <div class="project-number">03</div>
+          <div class="project-art image-art">
+            <img src="/images/dsc_9145.jpg" alt="" width="900" height="600">
+          </div>
+          <div class="project-copy">
+            <p>Game · Unity</p>
+            <h3>Dolls</h3>
+            <span>An award-winning first-person interactive horror experience.</span>
+          </div>
+        </a>
+      </div>
+    </section>
 
-const bucket_len = 60/image.length
-function randomimage() {
-  const seconds = new Date().getSeconds()
-  const bucket = Math.floor(seconds / bucket_len)
-  return(image[bucket])
-}
-document.write('<img src="' + imlocation + randomimage() +  '" style="width: 90%; height: 90%"/>');
-//-->
-</script>
-</center>
-</div>
-	<footer id="footer" class="inner"><footer>
-<div class="about">
-<hr>
-<a href="https://twitter.com/youbuer"><img
-src="https://s.gravatar.com/avatar/34fe2d98d60e35a82cf6d649e1f93a91?s=640"></img></a>
-<h4>Fan You</h4>
-<p><a href="https://twitter.com/youbuer">@fanyou</a>. A programmer in Carnegie
-Mellon University. See My
-<a
-href="https://github.com/Noeyfan">Github</a>, <a href="/portfolio">Portfolio</a>, <a href="/about">Resumé</a>, <a href="/blog/">Blog</a> and <a href="https://medium.com/@fanyou">Medium</a>.
-Contact me via <a href="mailto:youfan.noey@gamil.com">e-mail</a>.</p>
-</hr>
-</div>
+    <section class="section about-strip reveal">
+      <p class="eyebrow">A little about me</p>
+      <blockquote>“Engineering is most interesting where <em>systems thinking</em> meets human experience.”</blockquote>
+      <div>
+        <p>From contributing to the GNU toolchain to building distributed systems and immersive games, my work has always crossed boundaries.</p>
+        <a class="text-link" href="/about/">More about me <span>↗</span></a>
+      </div>
+    </section>
+  </main>
 
-<div class="copy">
-&copy; 2021
-<a href="http://fyou.me/"></a>
-</footer>
-</footer>
-	<script src="/javascripts/slash.js"></script>
-<script src="/javascripts/hyphenator.js"></script>
-
-
-<script type="text/javascript">
-      var disqus_shortname = 'buertec';
-      
-        
-        var disqus_script = 'count.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
-
-
-
-
-
-
+  <footer class="site-footer">
+    <div>
+      <p class="eyebrow">Have something interesting in mind?</p>
+      <a class="footer-title" href="mailto:youfan.noey@gmail.com">Let’s make it real. <span>↗</span></a>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span data-year></span> Fan You</span>
+      <div><a href="https://github.com/Noeyfan">GitHub</a><a href="https://medium.com/@fanyou">Medium</a><a href="/atom.xml">RSS</a></div>
+      <a href="#main">Back to top ↑</a>
+    </div>
+  </footer>
 </body>
-<script>
-  $(document).ready(function() {
-  // Make images center
-  $('p:has(img)').css('text-align', 'center');
-  });
-</script>
 </html>
