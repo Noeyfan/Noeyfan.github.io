@@ -1,0 +1,58 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+}
+
+const {
+  title = 'NOEY',
+  description = 'Notes, systems, projects and observations by Fan You.',
+  image = '/og.png',
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const pageTitle = title === 'NOEY' ? title : `${title} · NOEY`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.png" />
+    <link rel="alternate" href="/rss.xml" type="application/rss+xml" title="NOEY" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={new URL(image, Astro.site)} />
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">skip to content</a>
+    <header class="site-header frame">
+      <a class="brand" href="/">NOEY</a>
+      <nav aria-label="primary">
+        <a href="/blog/">notes</a>
+        <a href="/skills/">skills</a>
+        <a href="/portfolio/">work</a>
+        <a href="/about/">about</a>
+      </nav>
+    </header>
+    <main id="content"><slot /></main>
+    <footer class="site-footer frame">
+      <span>Fan You · <span data-year>2026</span></span>
+      <div><a href="https://github.com/Noeyfan">github</a><a href="mailto:youfan.noey@gmail.com">email</a><a href="/rss.xml">rss</a></div>
+    </footer>
+    <script>
+      document.querySelectorAll('[data-year]').forEach((node) => {
+        node.textContent = String(new Date().getFullYear());
+      });
+    </script>
+  </body>
+</html>

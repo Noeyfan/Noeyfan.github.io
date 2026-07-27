@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostList from '../components/PostList.astro';
+import { legacyPosts } from '../data/legacyPosts';
+
+const images = [
+  '/images/Pitt_img.JPG',
+  '/images/img_3911.jpg',
+  '/images/dsc_9145.jpg',
+  '/images/p1.JPG',
+  '/images/p3.JPG',
+  '/images/Suika.jpg',
+];
+---
+
+<BaseLayout>
+  <section class="home frame">
+    <figure class="photo-stage">
+      <img id="home-photo" src={images[0]} alt="A photograph from Fan You's archive" width="1200" height="800" />
+      <figcaption>
+        <span>visual log</span>
+        <button id="next-photo" type="button" aria-label="Show next photograph">01 / 06</button>
+      </figcaption>
+    </figure>
+
+    <div class="profile">
+      <img src="https://s.gravatar.com/avatar/34fe2d98d60e35a82cf6d649e1f93a91?s=160" alt="Fan You" width="64" height="64" />
+      <div>
+        <h1>Fan You</h1>
+        <p>A programmer, builder and observer. This is where I keep notes on systems, software, and the ordinary things worth remembering.</p>
+        <div class="inline-links"><a href="/about/">about</a><a href="/portfolio/">work</a><a href="/blog/">all notes</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="frame home-notes">
+    <header class="section-label"><span>recent notes</span><span>archive / 2014—now</span></header>
+    <PostList posts={legacyPosts.slice(0, 5)} />
+  </section>
+</BaseLayout>
+
+<script is:inline define:vars={{ images }}>
+  const photo = document.querySelector('#home-photo');
+  const button = document.querySelector('#next-photo');
+  let index = 0;
+
+  const render = () => {
+    if (!(photo instanceof HTMLImageElement) || !(button instanceof HTMLButtonElement)) return;
+    photo.src = images[index];
+    button.textContent = `${String(index + 1).padStart(2, '0')} / ${String(images.length).padStart(2, '0')}`;
+  };
+
+  button?.addEventListener('click', () => {
+    index = (index + 1) % images.length;
+    render();
+  });
+
+  render();
+</script>
