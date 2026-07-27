@@ -1,0 +1,30 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+---
+
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <article class="article frame">
+    <header class="article-header">
+      <a href="/blog/">← notes</a>
+      <h1>{post.data.title}</h1>
+      <p>{post.data.description}</p>
+      <div><time>{post.data.publishedAt.toISOString().slice(0, 10)}</time><span>{post.data.tags.join(' · ')}</span></div>
+    </header>
+    <div class="article-grid">
+      <aside>
+        <span>contents</span>
+        {headings.map((heading) => <a href={`#${heading.slug}`}>{heading.text}</a>)}
+      </aside>
+      <div class="prose"><Content /></div>
+    </div>
+  </article>
+</BaseLayout>

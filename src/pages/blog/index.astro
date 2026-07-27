@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostList from '../../components/PostList.astro';
+import { legacyPosts } from '../../data/legacyPosts';
+
+const posts = (await getCollection('posts', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf())
+  .map((post) => ({
+    title: post.data.title,
+    date: post.data.publishedAt.toISOString().slice(0, 10).replaceAll('-', '.'),
+    href: `/blog/${post.id}/`,
+    tags: post.data.tags,
+  }));
+
+const allPosts = [...posts, ...legacyPosts];
+---
+
+<BaseLayout title="notes" description="Notes on systems, software and life by Fan You.">
+  <section class="page frame">
+    <header class="page-title">
+      <span>INDEX–01</span>
+      <h1>notes</h1>
+      <p>Long-form thinking, technical records and small observations. New writing lives in Markdown; the old archive remains intact.</p>
+    </header>
+    <div class="filter-row">
+      <span>{String(allPosts.length).padStart(2, '0')} entries</span>
+      <span>newest first</span>
+    </div>
+    <PostList posts={allPosts} />
+  </section>
+</BaseLayout>

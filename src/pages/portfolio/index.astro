@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const projects = [
+  ['01', 'GNU Compiler Collection', 'C++ · open source', 'Implemented shared_ptr array support and polymorphic allocators for libstdc++.', 'https://github.com/Noeyfan/gcc'],
+  ['02', 'Distributed Systems', 'C · Java · systems', 'RPC interposition, distributed file systems, caching and elastic infrastructure.', 'https://github.com/Noeyfan/DistrubutedSystem-15440'],
+  ['03', 'Dolls', 'Unity · interactive', 'An award-winning first-person interactive horror experience.', 'https://github.com/Noeyfan/Dolls/tree/master/PsychoKiller'],
+  ['04', 'Infrared Remote System', 'Arduino · accessibility', 'An inexpensive configurable smart controller for disabled people.', 'https://github.com/Noeyfan/ArduinoIR'],
+  ['05', 'SMALLab Learning', 'Qt · tooling', 'A visual XML configuration tool for embodied-learning games.', 'https://github.com/Noeyfan/SmalLab'],
+];
+---
+
+<BaseLayout title="work" description="Selected software, systems and interactive work by Fan You.">
+  <section class="page frame">
+    <header class="page-title">
+      <span>ARCHIVE–02</span>
+      <h1>selected work</h1>
+      <p>Open-source contributions, systems work, tools and interactive experiments.</p>
+    </header>
+    <ol class="work-list">
+      {projects.map(([index, name, type, summary, href]) => (
+        <li><a href={href}>
+          <span>{index}</span>
+          <div><h2>{name}</h2><p>{summary}</p></div>
+          <small>{type}</small>
+          <b>↗</b>
+        </a></li>
+      ))}
+    </ol>
+  </section>
+</BaseLayout>

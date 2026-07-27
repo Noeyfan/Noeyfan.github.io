@@ -1,0 +1,29 @@
+---
+interface Post {
+  title: string;
+  date: string;
+  href: string;
+  tags?: string[];
+}
+
+interface Props {
+  posts: Post[];
+}
+
+const { posts } = Astro.props;
+---
+
+<ol class="post-list">
+  {posts.map((post, index) => (
+    <li>
+      <a href={post.href}>
+        <span class="post-index">{String(index + 1).padStart(2, '0')}</span>
+        <span class="post-main">
+          <strong>{post.title}</strong>
+          <span>{post.tags?.join(' · ')}</span>
+        </span>
+        <time>{post.date}</time>
+      </a>
+    </li>
+  ))}
+</ol>
