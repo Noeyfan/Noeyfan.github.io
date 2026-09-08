@@ -4,13 +4,7 @@ import { skills, skillGroups } from '../../data/skills';
 ---
 
 <BaseLayout title="life skill tree" description="A living map of skills Fan You is practicing, exploring and revisiting.">
-  <section class="page frame">
-    <header class="page-title">
-      <span>MAP–01 · living document</span>
-      <h1>life skill tree</h1>
-      <p>Not a scorecard. A small map of capabilities I’m building, where they come from, and what I want to practice next.</p>
-    </header>
-
+  <section class="page frame" aria-label="skills">
     <div class="skill-controls" aria-label="Filter skills">
       <button type="button" data-filter="all" class="is-active">all</button>
       {skillGroups.map((group) => <button type="button" data-filter={group}>{group}</button>)}

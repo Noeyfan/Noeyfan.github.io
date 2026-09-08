@@ -11,12 +11,7 @@ const projects = [
 ---
 
 <BaseLayout title="work" description="Selected software, systems and interactive work by Fan You.">
-  <section class="page frame">
-    <header class="page-title">
-      <span>ARCHIVE–02</span>
-      <h1>selected work</h1>
-      <p>Open-source contributions, systems work, tools and interactive experiments.</p>
-    </header>
+  <section class="page frame" aria-label="work">
     <ol class="work-list">
       {projects.map(([index, name, type, summary, href]) => (
         <li><a href={href}>

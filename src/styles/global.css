@@ -38,7 +38,6 @@ nav a:hover { color: var(--link); }
 .inline-links { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 10px; }
 .inline-links a { color: var(--link); }
 .home-notes { padding: 74px 0 100px; border-top: 1px solid var(--line); }
-.section-label, .filter-row { display: flex; justify-content: space-between; margin-bottom: 34px; color: var(--muted); font: 9px/1 var(--mono); text-transform: uppercase; letter-spacing: .09em; }
 .post-list { margin: 0; padding: 0; list-style: none; }
 .post-list li { border-top: 1px solid var(--line); }
 .post-list li:last-child { border-bottom: 1px solid var(--line); }
@@ -49,11 +48,6 @@ nav a:hover { color: var(--link); }
 .post-main span { display: block; margin-top: 5px; color: var(--link); font-size: 12px; }
 .post-list time { color: var(--muted); font: 9px var(--mono); }
 .page { padding: 42px 0 130px; }
-.page-title { margin-bottom: 80px; }
-.page-title > span { color: var(--muted); font: 9px var(--mono); letter-spacing: .1em; }
-.page-title h1 { margin: 18px 0 8px; font-size: clamp(35px, 6vw, 58px); font-weight: 400; line-height: 1; letter-spacing: -.045em; text-transform: lowercase; }
-.page-title p { max-width: 470px; margin: 0; color: var(--muted); }
-.filter-row { padding: 10px 0; margin-bottom: 0; border-top: 1px solid var(--ink); }
 .skill-controls { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 32px; }
 .skill-controls button { padding: 7px 12px; color: var(--muted); border: 1px solid var(--line); background: var(--bg); cursor: pointer; font: 10px var(--mono); }
 .skill-controls button:hover, .skill-controls .is-active { color: var(--bg); border-color: var(--ink); background: var(--ink); }
@@ -81,7 +75,6 @@ nav a:hover { color: var(--link); }
 .work-list b { color: var(--link); font-weight: 400; }
 .work-list a:hover h2 { color: var(--link); }
 .about-page { display: grid; grid-template-columns: 250px 1fr; gap: 60px; }
-.about-page .page-title { grid-column: 1 / -1; margin-bottom: 10px; }
 .about-page figure { margin: 0; }
 .about-page figure img { width: 100%; aspect-ratio: 4/5; object-fit: cover; filter: grayscale(1); }
 .about-copy > p:first-child { color: var(--ink); font-size: 21px; line-height: 1.45; }
@@ -120,7 +113,6 @@ nav a:hover { color: var(--link); }
   .post-list a { grid-template-columns: 28px 1fr; padding: 17px 0; }
   .post-list time { display: none; }
   .page { padding-top: 25px; }
-  .page-title { margin-bottom: 58px; }
   .skill-grid { grid-template-columns: 1fr; }
   .skill { min-height: auto; }
   .work-list a { grid-template-columns: 25px 1fr 16px; padding: 20px 0; }
