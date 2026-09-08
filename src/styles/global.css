@@ -48,24 +48,6 @@ nav a:hover { color: var(--link); }
 .post-main span { display: block; margin-top: 5px; color: var(--link); font-size: 12px; }
 .post-list time { color: var(--muted); font: 9px var(--mono); }
 .page { padding: 42px 0 130px; }
-.skill-controls { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 32px; }
-.skill-controls button { padding: 7px 12px; color: var(--muted); border: 1px solid var(--line); background: var(--bg); cursor: pointer; font: 10px var(--mono); }
-.skill-controls button:hover, .skill-controls .is-active { color: var(--bg); border-color: var(--ink); background: var(--ink); }
-.skill-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--ink); border-left: 1px solid var(--line); }
-.skill-group { border-right: 1px solid var(--line); }
-.skill-group > header { height: 80px; padding: 13px; border-bottom: 1px solid var(--line); }
-.skill-group > header span { color: var(--muted); font: 9px var(--mono); }
-.skill-group h2 { margin: 12px 0 0; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
-.skill { min-height: 205px; padding: 15px 13px; border-bottom: 1px solid var(--line); }
-.skill-top { display: flex; justify-content: space-between; gap: 8px; }
-.skill h3 { margin: 0; font-size: 13px; font-weight: 500; }
-.skill-top span, .skill small { color: var(--muted); font: 8px var(--mono); }
-.level { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin: 25px 0; }
-.level i { height: 5px; background: #e5e7e7; }
-.level i.filled { background: var(--ink); }
-.level i.filled:last-of-type { background: var(--signal); }
-.skill p { margin: 0 0 18px; color: #777d80; font-size: 12px; line-height: 1.5; }
-.skill small { display: block; line-height: 1.4; }
 .work-list { margin: 0; padding: 0; border-top: 1px solid var(--ink); list-style: none; }
 .work-list li { border-bottom: 1px solid var(--line); }
 .work-list a { min-height: 125px; display: grid; grid-template-columns: 40px 1fr 115px 20px; gap: 20px; align-items: center; }
@@ -113,8 +95,6 @@ nav a:hover { color: var(--link); }
   .post-list a { grid-template-columns: 28px 1fr; padding: 17px 0; }
   .post-list time { display: none; }
   .page { padding-top: 25px; }
-  .skill-grid { grid-template-columns: 1fr; }
-  .skill { min-height: auto; }
   .work-list a { grid-template-columns: 25px 1fr 16px; padding: 20px 0; }
   .work-list small { display: none; }
   .about-page { grid-template-columns: 1fr; gap: 34px; }
