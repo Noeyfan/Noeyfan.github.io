@@ -1,7 +1,5 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PostList from '../components/PostList.astro';
-import { legacyPosts } from '../data/legacyPosts';
 
 const images = [
   '/images/Pitt_img.JPG',
@@ -23,19 +21,6 @@ const images = [
       </figcaption>
     </figure>
 
-    <div class="profile">
-      <img src="https://s.gravatar.com/avatar/34fe2d98d60e35a82cf6d649e1f93a91?s=160" alt="Fan You" width="64" height="64" />
-      <div>
-        <h1>Fan You</h1>
-        <p>A programmer, builder and observer. This is where I keep notes on systems, software, and the ordinary things worth remembering.</p>
-        <div class="inline-links"><a href="/about/">about</a><a href="/portfolio/">work</a><a href="/blog/">all notes</a></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="frame home-notes">
-    <header class="section-label"><span>recent notes</span><span>archive / 2014—now</span></header>
-    <PostList posts={legacyPosts.slice(0, 5)} />
   </section>
 </BaseLayout>
 
